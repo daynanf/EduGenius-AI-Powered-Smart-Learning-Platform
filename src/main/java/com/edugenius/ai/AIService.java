@@ -14,7 +14,7 @@ import com.edugenius.model.AIReviewResponse;
 public class AIService {
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
     private static final String MODEL_NAME = "llama-3.3-70b-versatile";
-    private static final String API_KEY = "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";
+    private static final String API_KEY = System.getenv("GROQ_API_KEY");
 
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final Gson gson = new Gson();
