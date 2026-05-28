@@ -1,0 +1,684 @@
+UI/UX SPECIFICATION
+AAU CS Study Guide
+AI-Powered Learning Platform
+Complete screen-by-screen design specification for all 9 application views. Includes layout hierarchy,
+component specifications, interaction design, color system, typography, Swing implementation
+guidance, and animation patterns.
+Platform Role System Tech Stack Screens
+Desktop (Java Swing) Student + Teacher
+Swing + SQL Server +
+Groq AI 9 screens documented
+TABLE OF CONTENTS
+01 Color Palette & Design System
+02 Typography System
+03 Welcome / Sign-Up Screen
+AAU CS Study Guide · UI/UX Specification · Page 2
+04 Login Screen
+05 Student Dashboard
+06 AI Learning Dashboard (per course)
+07 AI Tutor Screen
+08 Study Plan Screen
+09 Quiz Screen (Student & Teacher)
+10 History Screen
+11 Teacher Dashboard
+12 Swing Implementation Guide
+13 Animation & Transition Guide
+14 Presentation Strategy
+AAU CS Study Guide · UI/UX Specification · Page 3
+01 COLOR PALETTE & DESIGN SYSTEM
+The palette uses a deep navy base (academic authority) with electric teal as the primary accent (intelligence,
+technology). Amber signals warnings and achievements. All surfaces use near-white with subtle gray for
+hierarchy.
+PRIMARY PALETTE
+Navy Base
+#0D1B2A
+App background,
+navbar
+Navy Medium
+#1A2E45
+Cards, panels
+Navy Light
+#243B55
+Hover states, borders
+Teal Primary
+#00C9A7
+CTAs, active states,
+AI
+Teal Dark
+#007A66
+Hover on teal, links
+Teal Light
+#E0FBF5
+Light mode teal bg
+SEMANTIC PALETTE
+Amber
+#FFB347
+Achievements,
+warnings
+Amber Light
+#FFF4E0
+Achievement bg
+Coral
+#FF6B6B
+Errors, alerts
+Coral Light
+#FFF0F0
+Error bg
+Purple
+#7C5CBF
+AI features, study
+plans
+Purple Light
+#F0ECFF
+AI feature bg
+NEUTRAL PALETTE
+Ink
+#1A1A2E
+Body text
+Muted
+#64748B
+Secondary text, labels
+Border
+#E2E8F0
+Dividers, input borders
+Surface
+#F8FAFC
+Light backgrounds
+White
+#FFFFFF
+Cards, primary bg
+Green
+#22C55E
+Success, correct
+answer
+DESIGN PRINCIPLE: Always pair the navy background with teal accents for AI-related elements. Use white
+cards on navy for the main content areas. Never use pure black — use Navy #0D1B2A instead. Keep 60%
+navy, 30% white/surface, 10% teal/accent ratio.
+AAU CS Study Guide · UI/UX Specification · Page 4
+02 TYPOGRAPHY SYSTEM
+Style Font / Weight Size Color Usage
+Display / Hero Helvetica Bold 36–40p
+x
+#FFFFFF App name, screen titles on dark bg
+H1 Screen Title Helvetica Bold 22px #1A1A2E Main section headings
+H2 Section Head Helvetica Bold 16px #1A1A2E Card titles, subsection headers
+H3 Component Helvetica Bold 13px #007A66 Component labels, spec headers
+Label / Eyebrow Helvetica Bold 8px #64748B ALL CAPS, letter-spacing 1.2px, categories
+Body Regular Helvetica 10px #1A1A2E Main content, descriptions
+Body Muted Helvetica 10px #64748B Secondary text, metadata
+Body Small Helvetica 9px #1A1A2E Card body, compact UI
+Code / Mono Courier 8–9px #0D1B2A Code blocks, AAU IDs, specs
+Button Text Helvetica Bold 10px #FFFFFF All buttons, minimum 10pt
+Input Placeholder Helvetica 10px #94A3B8 Form field placeholders
+SWING TYPOGRAPHY NOTE: Java Swing uses AWT fonts. Map 'Helvetica Bold' → Font.BOLD, 'Helvetica' →
+Font.PLAIN. Use renderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_ON)
+on all Graphics2D contexts for smooth text. Font sizes in Swing are in points — these map 1:1 to the px values
+above.
+AAU CS Study Guide · UI/UX Specification · Page 5
+SCREEN 03
+Welcome & Sign-Up Screen
+First impression — academic authority meets modern AI intelligence
+LAYOUT WIREFRAME
+TOP BAR | App logo left · 'AAU CS Study Guide' | Version badge right
+LEFT PANEL 50% | Hero text, AAU branding, feature highlights, abstract geometric background art
+RIGHT PANEL 50% | Sign-up card (white) | Form fields, role selector, conditional fields
+FOOTER | Privacy Policy · Terms · Contact AAU Tech Support
+LEFT PANEL — HERO SECTION
+Background Navy gradient #0D1B2A → #1A2E45 with subtle dot-grid pattern overlay
+Logo App icon (geometric brain/circuit motif) 48×48px + wordmark 'AAU Study Guide'
+in Helvetica Bold 22px white
+Hero headline 'Study Smarter, Not Harder' — 32px white, bold, line-height 1.2
+Subheading 'AI-powered learning built for AAU CS students' — 13px muted, line-height 1.6
+Feature list 3–4 icon+text rows: AI Quiz Generation / Smart Study Plans / Progress Tracking
+/ AI Tutor. Icons: 16px teal, text 11px white
+Bottom badge Small pill: 'Powered by LLaMA 3.3 via Groq' — teal border, navy bg, 8px
+AAU CS Study Guide · UI/UX Specification · Page 6
+RIGHT PANEL — SIGN-UP CARD
+Card size 480×580px centered, white background, border-radius 12px, box-shadow: 0 8px
+32px rgba(0,0,0,0.12)
+Card padding 32px all sides
+Card title 'Create your account' — 20px bold ink
+Card subtitle 'Use your AAU student or staff ID' — 11px muted
+FORM FIELDS (SIGN-UP CARD)
+AAU ID field Label: 'AAU ID' | Placeholder: 'UGR/XXXX/XX or SGR/XXXX/XX' | Mono font for
+placeholder | Icon: ID badge left
+Full name Label: 'Full Name' | Placeholder: 'Enter your full name'
+Password Label: 'Password' | Placeholder: '8+ characters' | Eye icon toggle right
+Role selector Dropdown: 'Select Role' → Student / Teacher. Teal accent on focus
+Conditional If Student: Year (1–5) + Semester (1–2) selectors appear with slide-down
+animation (200ms ease). If Teacher: Subject/Course field appears
+Submit button Full width, 44px height, #00C9A7 background, white bold text, border-radius
+8px. Hover: darken to #007A66
+Login link Below button: 'Already have an account?' (muted) + 'Sign In' (teal bold link)
+INTERACTIONS & ANIMATION
+Field focus Border transitions from #E2E8F0 to #00C9A7, label floats upward (CSS-style
+floating label behavior in Swing via absolute positioning)
+Role change Conditional fields animate in from top with opacity fade — Swing: setVisible +
+Timer-based alpha animation using AlphaComposite
+Error state Field border → coral #FF6B6B, shake animation (3× horizontal translate 4px,
+50ms each), error text below field in coral 8px
+Success Submit button shows checkmark icon, text changes to 'Account Created!', teal
+pulse ring around button
+Page entry Right card slides in from right (translateX 40px → 0) over 300ms ease-out on
+app startup
+AAU CS Study Guide · UI/UX Specification · Page 7
+SCREEN 04
+Login Screen
+Minimal, focused authentication — desktop-first design
+FULL BACKGROUND | Navy #0D1B2A with geometric light-streak pattern (diagonal lines, 3% opacity teal)
+CENTER LOGIN CARD | White card, 420×400px centered in window | Floating above background
+WINDOW CONTROLS AREA | Back arrow top-left | App name top-center
+LOGIN CARD DESIGN
+Card size 420×400px — centered horizontally and vertically in window
+Card style White bg, border-radius 16px, shadow: 0 16px 48px rgba(0,0,0,0.18), subtle
+border: 1px solid #E2E8F0
+Logo area App icon 40×40px + 'AAU Study Guide' 18px bold centered at top of card
+Title 'Welcome Back' — 22px bold, centered
+Subtitle 'Sign in with your AAU credentials' — 11px muted, centered
+ID field Full width, 44px height, mono placeholder 'UGR/XXXX/XX', ID badge icon left
+Password field Full width, 44px height, eye icon toggle right side
+Forgot
+password
+Right-aligned link below password: 'Forgot password?' — 9px teal
+Login button Full width, 48px, teal #00C9A7, white bold text, radius 8px, slight glow on hover:
+box-shadow teal 20%
+Back link Centered below button: '← Back to Welcome' — 9px muted
+INPUT FOCUS BEHAVIOR
+Idle state Border: 1px solid #E2E8F0, background: #F8FAFC
+AAU CS Study Guide · UI/UX Specification · Page 8
+Hover state Border: 1px solid #94A3B8 (100ms transition)
+Focus state Border: 2px solid #00C9A7, background: white, subtle teal glow: 0 0 0 3px
+rgba(0,201,167,0.15)
+Error state Border: 2px solid #FF6B6B, background: #FFF0F0, error message below in
+coral 8px
+Filled state Background: white, border: 1px solid #E2E8F0
+SWING IMPLEMENTATION: Override paintBorder() in a custom JTextField subclass. Track focus with
+FocusListener. Use a Timer to animate the glow ring by drawing progressively larger rounded rectangles at
+decreasing alpha values. Store current animation frame in a field and call repaint() each timer tick.
+AAU CS Study Guide · UI/UX Specification · Page 9
+SCREEN 05
+Student Dashboard
+The student's home base — personalized, course-centric, energizing
+LAYOUT STRUCTURE
+TOP NAVIGATION BAR h=56px | Logo left · 'Dashboard' active tab · History · Settings | Profile avatar + name right
+WELCOME BANNER h=80px | 'Good morning, Abebe!' (personalized) · Streak badge · Quick stats row
+SECTION LABEL | 'Your Semester Courses' with semester/year selector right
+COURSE CARD GRID | 3 columns × 2 rows = 6 cards max | Each 200×140px | Scrollable if more
+BOTTOM BAR h=48px | Progress summary · Weak areas count · Next recommended topic
+TOP NAVIGATION BAR
+Height 56px fixed
+Background Navy #0D1B2A
+Logo area Teal brain/circuit icon 24px + 'AAU Study Guide' 14px bold white — left aligned,
+16px padding
+Nav tabs Dashboard | History | Settings — 13px, white active (with teal 2px bottom
+border), muted inactive — hover: slight white highlight
+Right area Circular avatar 32px (initials fallback) + student name 12px white + dropdown
+arrow — settings gear icon 20px teal, 16px right margin
+Settings
+dropdown
+Logout | Change Year | History | About — white card, shadow, 180px wide,
+border-radius 8px
+WELCOME BANNER
+Time greeting Dynamic: 'Good morning / afternoon / evening, [First Name]!' — 20px bold white
+Streak badge Flame icon + '5-day streak' — amber pill badge, right of greeting
+Stats row 3 quick-stat pills: Quizzes Taken | Avg Score | Study Hours — small teal pills,
+11px white
+AAU CS Study Guide · UI/UX Specification · Page 10
+Background Navy medium #1A2E45 with very subtle teal gradient left edge
+COURSE CARD DESIGN
+Card size ~200×140px, white background, border-radius 12px, shadow: 0 2px 12px
+rgba(0,0,0,0.08)
+Top accent bar 4px tall colored strip at top — each course gets a unique color from palette
+Course icon Subject-specific icon 28px, placed in colored circle 44px — right of card content
+Course name 14px bold ink, e.g. 'Data Structures'
+Course code 10px muted, e.g. 'CS 201 · Year 2 Sem 1'
+Progress bar Thin 4px bar bottom of card showing quiz completion %
+Hover state Card lifts: shadow increases, slight scale 1.02, cursor becomes pointer
+Click action Navigate to AI Learning Dashboard for that course — slide left transition
+Example
+courses
+Data Structures · Java Programming · Database Systems · Discrete Math · OS ·
+Computer Networks
+SETTINGS DROPDOWN MENU
+Trigger Gear icon top-right of navbar
+Position Appears below trigger, right-aligned, 200px wide
+Items Change Year & Semester | View History | About EduGenius | Logout
+Style White bg, border-radius 8px, shadow, 12px padding per item, hover: teal light bg
+Logout Coral text, adds separator above it
+AAU CS Study Guide · UI/UX Specification · Page 11
+SCREEN 06
+AI Learning Dashboard
+Course-level hub: the gateway to study plans, quizzes, and AI tutoring
+NAV BAR | ← Back · 'Data Structures' breadcrumb | Profile right
+COURSE HERO h=90px | Course name large · Description · Course stats (Topics / Quizzes / Score)
+FEATURE CARDS ROW | 3 large cards: Study Plan · AI Quiz · AI Tutor
+QUICK STATS | Recent quiz score · Top weak area · Recommended next action
+FEATURE CARD DESIGN (3-UP ROW)
+Card size Each card: equal width (1/3 of content area), 200px tall, border-radius 16px
+Card 1 — Study
+Plan
+Purple accent #7C5CBF. Icon: roadmap/path 40px purple. Title bold 16px.
+Subtitle 11px muted. Bottom: 'Generate Plan →' teal link
+Card 2 — AI
+Quiz
+Teal accent #00C9A7. Icon: lightning-bolt-brain 40px teal. Title: 'AI Quiz
+Generator'. Bottom: 'Start Quiz →' teal link
+Card 3 — AI
+Tutor
+Amber accent #FFB347. Icon: chat-robot 40px amber. Title: 'AI Tutor'. Subtitle:
+'Ask anything'. Bottom: 'Open Tutor →' teal link
+Hover effect Card border color becomes accent color. Background tints slightly. Scale 1.02.
+Icon animates (pulse or bounce).
+Click ripple Material-style ripple from click point — Swing: Timer-based expanding circle at
+alpha 0.3→0
+QUICK STATS ROW
+Layout 3 equal-width stat cells in a row below the feature cards
+Stat 1 Last Quiz Score: score number large + grade badge (A/B/C/D/F colored)
+Stat 2 Weakest Area: topic name + small bar showing % accuracy
+AAU CS Study Guide · UI/UX Specification · Page 12
+Stat 3 AI Recommendation: 'Review Binary Trees' — with small arrow icon → links to
+Tutor
+AAU CS Study Guide · UI/UX Specification · Page 13
+SCREEN 07
+AI Tutor Screen
+ChatGPT-style interface for CS education — the most interactive screen
+TOP BAR | ← Back · 'AI Tutor: Data Structures' · New Chat · History icon
+LEFT SIDEBAR 220px | Chat history list · Topic suggestions · Course shortcuts
+CHAT AREA (main, fills remaining width) | Message thread · Code blocks · AI typing indicator
+INPUT BAR h=64px | Text input · Send button · Suggested prompts chips above
+LEFT SIDEBAR
+Width 220px fixed
+Background Navy medium #1A2E45
+'New Chat'
+button
+Full width, 40px, teal outline style — top of sidebar
+History list Previous chats grouped by day. Each item: 13px white truncated title + 9px
+muted timestamp. Hover: navy light bg. Active: left teal 3px border + navy light
+bg
+Topic
+suggestions
+Section below history: 'Suggested Topics' label in teal 8px caps. 4–6 pill chips:
+'Binary Trees' / 'Sorting Algorithms' / 'Graph BFS' — click inserts as prompt
+Course
+shortcuts
+Bottom: small icons for course-switching without leaving tutor
+CHAT MESSAGE BUBBLES
+AAU CS Study Guide · UI/UX Specification · Page 14
+User bubble Right-aligned, max-width 65%, teal #00C9A7 background, white text 11px,
+border-radius: 16px 4px 16px 16px, padding 12px 16px
+AI bubble Left-aligned, max-width 75%, white bg, ink text 11px, border-radius: 4px 16px
+16px 16px, border: 1px solid #E2E8F0, padding 12px 16px
+AI avatar Small teal robot icon 24px left of AI bubble
+Timestamp 8px muted, below bubble, appears on hover
+Spacing 12px gap between messages from same sender, 20px gap when sender
+changes
+Code block Monospace 9px, dark background #1A2E45, teal text, border-radius 6px, copy
+icon top-right. Language label top-left in 8px caps
+AI typing Three dots bouncing animation (CSS keyframes in Swing: Timer-based y-offset
+sine wave on 3 circles)
+INPUT BAR
+Height 64px, surface background #F8FAFC, top border 1px #E2E8F0
+Text input Expands vertically up to 5 lines. Placeholder: 'Ask anything about Data
+Structures...'
+Send button 40×40px, teal circle, white arrow icon. Disabled (gray) when input empty
+Suggested
+chips
+Row above input: 3–4 rounded pills with common prompts: 'Explain recursion' /
+'Give me an example' / 'Write pseudocode'. Click fills input
+Keyboard Enter = send, Shift+Enter = new line
+SUGGESTED PROMPTS
+Initial state When chat is empty, show 4 large prompt cards in 2×2 grid in center of chat area
+Card style White bg, shadow, icon + prompt text. Hover: teal border
+Examples 'Explain Binary Search Trees' / 'What is Big O notation?' / 'Show me a Linked
+List example in Java' / 'Quiz me on sorting algorithms'
+Disappears Once first message sent, replace with actual chat thread
+AAU CS Study Guide · UI/UX Specification · Page 15
+SCREEN 08
+Study Plan Screen
+AI-generated personalized roadmap — visualization of the learning journey
+TOP BAR | ← Back · 'Study Plan: Data Structures' · Regenerate · Save
+PROMPT BAR h=60px | 'Describe your goal or current level...' · Generate Plan button
+PLAN OVERVIEW | Weekly roadmap visualization (horizontal timeline or week cards)
+WEEK DETAIL | Selected week expanded: topics, resources, quiz links, time estimates
+PROGRESS SIDEBAR 180px | Completion %, weak areas, next milestone
+PROMPT BAR DESIGN
+Background Navy medium, full width, 60px height
+Input Large text field, white bg, rounded 24px. Placeholder: 'e.g. I struggle with graph
+algorithms and recursion'
+Button Purple #7C5CBF + icon: sparkle/wand. Text: 'Generate Plan'. Right of input.
+Help chips Below input: small suggestion chips: 'I am a beginner' / 'Exam in 2 weeks' / 'I
+know basics, want advanced'
+WEEKLY ROADMAP VISUALIZATION
+Layout Horizontal scrollable row of week cards (Week 1 → Week N)
+Week card 120×80px, white bg, border-radius 12px, shadow. Top: 'Week 1' label. Middle:
+2–3 topic pills. Bottom: est. hours
+AAU CS Study Guide · UI/UX Specification · Page 16
+Active week Teal border, slightly larger scale
+Completed
+weeks
+Green checkmark icon, faded/grayed text
+Connector line Thin teal dashed line connecting all week cards — drawn on canvas behind
+cards
+Progress dot Current position: teal filled circle on the connector line
+WEEK DETAIL PANEL (EXPANDED BELOW ROADMAP)
+Topics list Numbered list of topics with checkboxes. Checked topics show strike-through
+text in muted
+Resources Each topic: collapsible 'Resources' section: links/notes from DB with book icon
+Quiz link Each topic: 'Practice Quiz →' teal button that navigates to AI Quiz with topic
+pre-filled
+Time estimate Pill badge: '2h estimated' — amber color
+Daily schedule Expandable: Mon/Tue/Wed... showing specific tasks per day
+PROGRESS SIDEBAR
+Overall
+progress
+Large circular progress ring: % complete. Teal fill, navy track, percentage
+number centered
+Weak areas Red-flagged topics list with percentage accuracy
+Milestones Upcoming milestone badges (locked/unlocked)
+Next action Bold CTA box: 'Your next session: Binary Trees — 45 min' with Start button
+AAU CS Study Guide · UI/UX Specification · Page 17
+SCREEN 09
+Quiz Screen — Student & Teacher
+The core interaction — AI-generated questions, real-time feedback, detailed review
+TOP BAR | ← Exit Quiz · 'Java OOP Quiz' · Timer: 14:23 · Q3/10
+PROGRESS BAR h=6px full width | Teal fill showing % completion · Question dots below
+QUESTION CARD main area | Question text · Option buttons A/B/C/D · Difficulty badge
+BOTTOM ACTION BAR | Flag · Previous · Next / Submit
+QUIZ SETUP STATE (BEFORE STARTING)
+Prompt area Large centered textarea: 'Enter quiz topic...' (teacher) or pre-filled course topic
+(student)
+Settings row Difficulty: Easy/Med/Hard toggle | Count: 5/10/15 selector | Type: MCQ/Short
+Answer toggle
+Generate button Large teal button with lightning icon: 'Generate Quiz with AI'
+Loading state Animated teal waveform / pulse while AI generates — 'AI is crafting your quiz...'
+message
+QUESTION CARD DESIGN
+Card size 80% of screen width, centered, min 500px, white bg, radius 16px, shadow
+Question
+number
+Teal pill: 'Question 3 of 10' — top left of card
+Difficulty badge Top right: 'Medium' — amber pill, 'Hard' — coral pill, 'Easy' — green pill
+Question text 18px bold ink, line-height 1.5. Center-aligned for short questions, left for long
+Options 4 buttons (A/B/C/D) — full width, 48px height, white bg, border 1.5px solid
+#E2E8F0, radius 8px
+Option labels Letter prefix (teal bold) + option text (11px ink). Left-aligned
+AAU CS Study Guide · UI/UX Specification · Page 18
+Hover state Option bg → teal light #E0FBF5, border → teal
+Selected state Bg → teal light, border → teal 2px, letter circle → solid teal white text
+Correct reveal Green bg #F0FDF4, green border, checkmark icon right
+Wrong reveal Coral bg, coral border, X icon right. Correct answer shown in green
+simultaneously
+TIMER DESIGN
+Display Top-right of nav: clock icon + MM:SS digital display in white bold
+Normal state White text
+Warning state < 2 min: amber text + amber background pill
+Critical state < 30 sec: coral text + pulse animation (border ring expands and fades)
+Expired Auto-submit with 'Time Up!' modal — coral bg, options disabled
+AI EXPLANATION PANEL (POST-ANSWER)
+Trigger Appears immediately after answering (or after all questions submitted)
+Panel style Slides up from bottom 60% of screen height, white bg, shadow, radius 16px top
+Header Robot icon + 'AI Explanation' + close button
+Content 2–3 sentence explanation of correct answer. Teal highlighted key terms. Code
+block if relevant.
+Navigation '← Previous Explanation' | 'Next Explanation →' for reviewing all questions
+SCORE SCREEN (AFTER COMPLETION)
+Hero section Large score % with circular ring animation (0 → final score, 1.5s ease), letter
+grade badge
+Stats row Correct | Wrong | Skipped | Time Taken — 4 stat cards in row
+Performance
+chart
+Horizontal bar per topic showing accuracy — colored green/amber/coral
+AAU CS Study Guide · UI/UX Specification · Page 19
+Bottom buttons 3 equal buttons: 'Back to Home' (outline) | 'AI Review' (teal filled) | 'Path
+Recommender' (purple filled)
+PATH RECOMMENDER PANEL
+Trigger Opens from 'Path Recommender' button — full-screen overlay or right panel
+slide-in
+Header AI analysis intro: 'Based on your results, here is your personalized improvement
+path'
+Weak areas List of topics below 60%, sorted by severity. Red indicator dot + topic name + %
+score
+Recommendatio
+ns
+For each weak area: specific subtopic to study + estimated time + 'Study Now →'
+button
+Study plan CTA Large button: 'Generate Full Study Plan' — navigates to Study Plan screen with
+data pre-filled
+AAU CS Study Guide · UI/UX Specification · Page 20
+SCREEN 10
+History Screen
+Complete interaction record — searchable, filterable, richly organized
+TOP BAR | ← Back · 'History' · Search bar · Filter dropdown
+FILTER ROW | All · Quizzes · Study Plans · AI Tutor · This Week · This Month
+CONTENT AREA | Grouped history list (grouped by date: Today / This Week / Earlier)
+FILTER SYSTEM
+Filter bar Horizontal pill-tab row below nav bar. Background: surface #F8FAFC
+Filter pills All | Quizzes | Study Plans | AI Chats | This Week | This Month — rounded pills,
+teal active, muted inactive
+Search bar In top nav, full-text search. Live-filters as user types. Search icon left, clear X
+right when populated
+Sort Small sort dropdown far right: 'Newest First' / 'Oldest First' / 'By Course'
+HISTORY ITEM CARD DESIGN
+Card height 72px per item, full width, white bg, hover: surface bg
+Left accent 4px left border — teal for quiz, purple for study plan, amber for AI chat
+Icon 32px icon in colored circle: quiz=lightning, plan=roadmap, chat=robot
+Course tag Pill: course name e.g. 'Data Structures' — colored per course
+Interaction type 'AI Quiz' / 'Study Plan' / 'AI Tutor Chat' — 10px muted
+Title/preview Truncated preview: quiz topic, plan title, or first message — 13px bold ink, max 1
+line
+AAU CS Study Guide · UI/UX Specification · Page 21
+Score badge For quizzes: score% and grade badge right-aligned — green/amber/coral based
+on score
+Timestamp Date + time, 9px muted, right side
+Expand/chevron Right chevron → click expands card inline showing full detail or navigates to
+review screen
+DATE GROUPING HEADERS
+Style 'TODAY' / 'YESTERDAY' / 'THIS WEEK' / 'EARLIER' — 8px bold muted caps,
+with thin line extending right
+Spacing 16px top margin, 8px bottom margin before first item in group
+AAU CS Study Guide · UI/UX Specification · Page 22
+SCREEN 11
+Teacher Dashboard
+AI Quiz creation hub — generate, review, assign, analyze
+TOP NAV | Logo · AI Quiz · My Courses · Student Results | Profile + Settings
+WELCOME BANNER | 'Welcome back, Dr. Bekele!' · Quick stats: Active Courses / Quizzes Created / Avg Class Score
+AI QUIZ GENERATOR | Large prompt area · Settings row · Generate button
+GENERATED QUIZ CARDS | Scrollable horizontal row of question cards
+QUIZ RESULTS & REVIEW | Progress bar · Scoreboard · AI explanations accordion
+BOTTOM ACTION BAR | Back Home · AI Review · Path Recommender · Assign to Class
+AI QUIZ GENERATOR PANEL
+Prompt area Large bordered textarea, 120px min height. Placeholder: 'e.g. Generate a Java
+OOP quiz for 2nd year CS students covering inheritance and polymorphism'
+Settings row Below prompt: Difficulty toggle (Easy/Med/Hard) | Question count (5/10/15) |
+Type (MCQ/Short Answer) | Target Year selector
+Generate button Full width, 48px, teal bg, lightning + wand icon, 'Generate Quiz with AI' — bold
+white 13px
+Loading state Button transforms to progress bar with animated teal shimmer. Text: 'AI is
+generating...' with dot animation
+GENERATED QUESTION CARDS
+Card layout Horizontal scrollable row (teacher sees all questions at once). Each card:
+280×200px
+Card header Q number (teal pill) + Difficulty badge + Marks (amber pill e.g. '5 pts')
+AAU CS Study Guide · UI/UX Specification · Page 23
+Question text 14px bold, 3-line max with ellipsis, full text on hover tooltip
+Options display 4 options listed A–D at 9px, correct answer shown with teal dot indicator
+Edit button Pencil icon top-right — opens inline edit mode on card
+Delete button Trash icon top-right (on hover)
+Add card Last item in row: '+' card with dashed border — opens manual question editor
+QUIZ REVIEW SECTION
+Progress bar Full-width teal bar showing quiz completion — used when teacher previews quiz
+Scoreboard Table: Rank | Student Name | Score | Grade | Time — sortable columns
+AI Review Accordion: each question + correct answer + AI-written explanation paragraph.
+Teal expand arrow
+Export button Top-right of review section: 'Export Results CSV' — teal outline button
+BOTTOM ACTION BUTTONS
+Back to Home Outline button, 40px, left side
+AI Review Teal filled, 40px — opens AI explanation panel
+Path
+Recommender
+Purple filled, 40px — shows class-wide weak area analysis
+Assign to Class Navy filled with teal border, 40px — sends quiz to enrolled students
+(teacher-only button)
+AAU CS Study Guide · UI/UX Specification · Page 24
+12 SWING IMPLEMENTATION GUIDE
+Java Swing is fully capable of producing modern, premium UIs when used correctly. The techniques below
+bridge the gap between standard Swing defaults and the design specified above.
+Custom JPanel Painting
+• Override paintComponent(Graphics g) — always call
+super.paintComponent(g) first
+• Cast to Graphics2D g2 = (Graphics2D) g
+• Set RenderingHints.KEY_ANTIALIASING,
+VALUE_ANTIALIAS_ON for smooth shapes
+• Set RenderingHints.KEY_TEXT_ANTIALIASING,
+VALUE_TEXT_ANTIALIAS_ON for smooth text
+• Use g2.setRenderingHints(Map) to set all hints at once
+Rounded Corners
+• g2.fill(new RoundRectangle2D.Double(x, y, w, h, radius,
+radius))
+• For cards: radius 12–16px. For buttons: 8px. For pills:
+full radius (h/2)
+• Draw border separately: g2.setColor(borderColor);
+g2.draw(roundRect)
+• Use BasicStroke for border thickness control
+Drop Shadows
+• Custom ShadowBorder class using BufferedImage with
+Gaussian blur (ConvolveOp)
+• Or: draw 2–3 layers of rounded rects at decreasing
+alpha before the main card
+• Example: alpha 0.06, 0.04, 0.02 at offsets (2,4), (4,8),
+(6,12)
+• Add to JComponent via setBorder(new
+ShadowBorder())
+Smooth Animations
+• Use javax.swing.Timer for all animations — never
+Thread.sleep on EDT
+• Easing: implement EasingUtils.easeOutCubic(t) = 1 -
+pow(1-t, 3)
+• For card hover scale: store float scale=1.0, animate
+1.0→1.02 on mouseEnter
+• Progress bars: animate value from 0→target over
+800ms using Timer + easing
+• Fade-in panels: use setOpaque(false), override paint to
+drawImage at alpha
+Custom Color Theme
+• Create AppTheme.java static class with all Color
+constants matching spec
+• NAVY = new Color(0x0D, 0x1B, 0x2A); TEAL = new
+Color(0x00, 0xC9, 0xA7); etc.
+• Apply UIManager.put() for global Swing component
+defaults at app startup
+• Override getForeground/getBackground in custom
+components for consistency
+Modern Input Fields
+• Subclass JTextField → RoundedTextField. Override
+paintComponent + paintBorder
+• Store boolean focused, haserror — change border color
+accordingly
+• Add FocusListener to toggle focused flag and call
+repaint()
+• Placeholder text: if getText().isEmpty() && !focused,
+draw placeholder in g2
+Navigation Transitions
+• Use CardLayout with custom TransitionPanel wrapper
+• On panel switch: take screenshot of current, slide in
+new panel over it
+• Store current panel as BufferedImage, animate
+drawImage x offset 0→-W
+• New panel slides from x=W → x=0 simultaneously
+• Duration: 250–300ms, easeInOutCubic easing
+Message Bubbles (AI Tutor)
+• Custom JPanel for each message, override
+paintComponent for bubble shape
+• User bubble: right-justified, teal fill, white text,
+right-rounded corners
+• AI bubble: left-justified, white fill with border,
+left-rounded corners
+• Add to JPanel with BoxLayout(Y_AXIS), wrap in
+JScrollPane with auto-scroll
+• AI typing: Timer-based three-dot animation — y-offset
+sin(time + i*PI/3) * 4
+AAU CS Study Guide · UI/UX Specification · Page 25
+13 ANIMATION & TRANSITION GUIDE
+Animation Duration Easing Trigger Swing Technique
+Page/screen transition (slide
+left)
+280ms easeInOutCubi
+c
+Navigation click CardLayout + BufferedImage overlay
+Timer
+Card hover lift (shadow +
+scale)
+120ms easeOutQuad mouseEnter Timer → scale float 1.0→1.02, repaint
+Button hover darken 80ms linear mouseEnter Interpolate Color RGB values with Timer
+Input field focus glow 150ms easeOut FocusEvent Animate glow radius 0→3px, alpha
+0→0.15
+Modal/panel slide up 240ms easeOutCubic Button click Animate JPanel Y from +height → 0
+Quiz score ring fill 1500ms easeOutExpo Result shown Timer increments arc extent 0→final
+Progress bar fill 800ms easeOutCubic Data load Timer increments JProgressBar value
+AI typing dots ∞ loop sin wave AI loading Timer + sin(time) for y-offset of 3 circles
+Card ripple effect 400ms easeOut Mouse click Timer → expanding circle, alpha 0.3→0
+Fade-in on load 200ms easeIn Panel shown AlphaComposite, Timer increments alpha
+0→1
+Conditional fields slide 200ms easeOutCubic Role change Animate max-height 0→target, setVisible
+Toast notification 300ms in / 2s
+hold / 200ms
+out
+ease Events Translate from bottom +60px → 0, hold,
+fade
+GOLDEN RULE: All animations must run on the Event Dispatch Thread using javax.swing.Timer. Never block
+the EDT with Thread.sleep(). Keep animations under 300ms for UI feedback and under 1500ms for celebratory
+effects (score reveals). Use easeOut for elements entering the screen, easeIn for elements leaving. Avoid
+animating more than 2 things simultaneously.
+AAU CS Study Guide · UI/UX Specification · Page 26
+14 PRESENTATION STRATEGY
+How to make your instructor stop, look twice, and give full marks.
+AI Tutor
+Screen
+Best Screen Award
+The ChatGPT-style chat interface is the most visually dramatic and technically impressive screen. It
+demonstrates real-time AI integration, custom bubble rendering, typing animations, and a professional
+multi-panel layout. Lead your demo with this.
+Problem
+→
+Solution
+→ Wow
+Moment
+Demo Flow
+Start: 'AAU students have no personalized study tool.' Demo login (5s). Open course (5s). Type topic
+into AI Quiz Generator, hit Generate — quiz appears in 3 seconds (15s). Answer 3 questions, show AI
+explanations (20s). Click Path Recommender — personalized plan generated live (15s). Open AI Tutor,
+ask 'Explain recursion with Java code' (20s). Total: ~80 seconds of pure impact.
+Seed your
+data
+Pre-demo preparation
+Create a student account 'Abebe Girma - ETS0042/15' with 20+ quiz attempts across 3 courses, visible
+weak areas, and an active streak. The instructor needs to SEE the AI recommendation working from real
+data, not from a blank account. Pre-generate one study plan.
+3 things
+that stop
+the room
+Visual wow factors
+1. The animated score ring (0% → 78% over 1.5 seconds) after a quiz. 2. The AI typing dots appearing
+before each AI response. 3. The dark navy + teal color scheme — it looks like a real product, not a
+student project.
+Technical
+depth
+signals
+Instructor impression points
+Mention: 'We used the Groq free API with LLaMA 3.3 70B.' 'Our AIService class handles all three AI
+features through a single prompt interface.' 'The database has 14 normalized tables with foreign keys
+and stored procedures.' 'We implemented 9 OOP design patterns including Observer, Strategy, and
+Singleton.'
+ICON STYLE RECOMMENDATION
+Style Phosphor Icons or Material Symbols — both have Java ports. Use 'Regular' weight for nav,
+'Bold' for CTAs
+Size Nav icons: 20px. Card icons: 28–40px. Button icons: 16px. Status icons: 14px
+Color Always match icon color to surrounding text color. Active icons: teal. Inactive: muted #64748B
+Rendering Draw as SVG paths on Graphics2D canvas for crisp rendering at all sizes. Never use raster
+icons that blur
+Key icons Brain/circuit = AI. Lightning = quiz. Roadmap = study plan. Robot = tutor. Trophy =
+achievement. Clock = timer. Star = score
+AAU CS Study Guide · UI/UX Specification · Page 27
+EduGenius is ready to
+build.
+This specification covers every sc
