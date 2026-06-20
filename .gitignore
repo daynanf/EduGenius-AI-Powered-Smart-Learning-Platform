@@ -1,2 +1,26 @@
-.env
+# Compiled files
+*.class
 target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Config files with sensitive data (API KEYS!)
+config.properties
+src/main/resources/config.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite
