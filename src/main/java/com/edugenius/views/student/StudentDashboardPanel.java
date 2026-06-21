@@ -191,7 +191,8 @@ public class StudentDashboardPanel extends JPanel implements ParameterReceiver {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(0, 0, 0, 0);
         
-        courseGridPanel = new JPanel(new GridLayout(0, 3, 20, 20));
+        courseGridPanel = new JPanel(new GridLayout(0, 1, 20, 20));
+        courseGridPanel.setSize(250,100);
         courseGridPanel.setBackground(AppTheme.SURFACE);
         content.add(courseGridPanel, gbc);
         
@@ -390,7 +391,8 @@ public class StudentDashboardPanel extends JPanel implements ParameterReceiver {
             courseGridPanel.setLayout(new BorderLayout());
             courseGridPanel.add(emptyLabel, BorderLayout.CENTER);
         } else {
-            courseGridPanel.setLayout(new GridLayout(0, 3, 20, 20));
+            courseGridPanel.setLayout(new GridLayout(0, 1, 20, 20));
+            courseGridPanel.setSize(250,100);
             for (Course course : courses) {
                 CourseCard card = new CourseCard(course);
                 courseGridPanel.add(card);
@@ -400,4 +402,5 @@ public class StudentDashboardPanel extends JPanel implements ParameterReceiver {
         courseGridPanel.revalidate();
         courseGridPanel.repaint();
     }
-}
+    
+}  

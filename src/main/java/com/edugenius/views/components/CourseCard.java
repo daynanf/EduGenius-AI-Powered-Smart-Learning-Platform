@@ -30,6 +30,7 @@ public class CourseCard extends JPanel {
         setLayout(new BorderLayout());
         setOpaque(false); // Enable transparency so rounded corners draw properly
         setPreferredSize(new Dimension(240, 170));
+        setSize(250,170);
         setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         // Resolve course accent color
