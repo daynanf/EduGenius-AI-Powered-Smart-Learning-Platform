@@ -77,8 +77,8 @@ public class SecurityUtils {
         if (password == null || password.isEmpty()) {
             return "Password is required";
         }
-        if (password.length() < 8) {
-            return "Password must be at least 8 characters";
+        if (password.length() < 4) {
+            return "Password must be at least 4 characters";
         }
         return "Password is valid";
     }

@@ -77,10 +77,10 @@ public class ValidationUtils {
     }
     
     /**
-     * Validate year of study (1-5)
+     * Validate year of study (1-4)
      */
     public static boolean isValidYear(int year) {
-        return year >= 1 && year <= 5;
+        return year >= 1 && year <= 4;
     }
     
     /**
