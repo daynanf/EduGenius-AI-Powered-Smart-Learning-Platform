@@ -3,44 +3,49 @@ package com.edugenius.views.student;
 
 import com.edugenius.config.AppTheme;
 import com.edugenius.models.Student;
+import com.edugenius.models.User;
 import com.edugenius.models.Course;
 import com.edugenius.services.AuthService;
 import com.edugenius.services.CourseService;
 import com.edugenius.views.NavigationManager;
+import com.edugenius.views.ParameterReceiver;
 import com.edugenius.views.components.CourseCard;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Student Dashboard - Main hub for students
- * Overhauled to look premium using standard Swing layouts and solid colors
- * Strictly avoids custom Graphics2D drawing to remain beginner-friendly
  */
-public class StudentDashboardPanel extends JPanel {
+public class StudentDashboardPanel extends JPanel implements ParameterReceiver {
     
     private Student currentStudent;
     private CourseService courseService;
     private JPanel courseGridPanel;
     private JComboBox<String> yearSemesterCombo;
     
-    // Standard Swing Labels for Dynamic Updating
+    // Labels for dynamic updating
     private JLabel greetingLabel;
     private JLabel welcomeNameLabel;
-    private JLabel termValueLabel;
-    private JLabel deptValueLabel;
-    private JLabel avatarLabel;
-    private JLabel profileNameLabel;
+    private JLabel navNameLabel;
+    private boolean dataLoaded = false;
     
     public StudentDashboardPanel() {
         courseService = new CourseService();
         setLayout(new BorderLayout());
         setBackground(AppTheme.SURFACE);
         initUI();
+        // Don't load data in constructor - wait for receiveParameters
+    }
+    
+    @Override
+    public void receiveParameters(Map<String, Object> params) {
+        System.out.println("[DEBUG] StudentDashboardPanel: receiveParameters called!");
+        // Load student data every time this screen is shown
         loadStudentData();
         loadCourses();
     }
@@ -60,15 +65,14 @@ public class StudentDashboardPanel extends JPanel {
     private JPanel createNavBar() {
         JPanel navBar = new JPanel(new BorderLayout());
         navBar.setBackground(AppTheme.NAVY);
-        navBar.setPreferredSize(new Dimension(0, 64)); // slightly taller for a premium breathing room
+        navBar.setPreferredSize(new Dimension(0, 64));
         
-        // Thin separator at the bottom of the navBar using a compound border
         navBar.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(255, 255, 255, 15)),
             BorderFactory.createEmptyBorder(0, 24, 0, 24)
         ));
         
-        // Left: Sleek Brand Typography
+        // Left: Brand Logo
         JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         logoPanel.setOpaque(false);
         
@@ -77,7 +81,6 @@ public class StudentDashboardPanel extends JPanel {
         logoLabel.setForeground(AppTheme.TEAL);
         logoPanel.add(logoLabel);
         
-        // Vertically center logo in navbar
         JPanel logoContainer = new JPanel(new GridBagLayout());
         logoContainer.setOpaque(false);
         logoContainer.add(logoPanel);
@@ -87,8 +90,13 @@ public class StudentDashboardPanel extends JPanel {
         JPanel rightActionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 0));
         rightActionsPanel.setOpaque(false);
         
+        // Student name display in navbar
+        navNameLabel = new JLabel("Student");
+        navNameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        navNameLabel.setForeground(AppTheme.WHITE);
+        rightActionsPanel.add(navNameLabel);
         
-        //  Custom Styled Logout Button using JButtons & MouseListeners
+        // Custom Styled Logout Button
         JButton logoutBtn = new JButton("Logout") {
             private boolean isHovered = false;
             {
@@ -146,7 +154,6 @@ public class StudentDashboardPanel extends JPanel {
             NavigationManager.getInstance().navigateTo("WELCOME");
         });
         
-        // Vertically position logout button with a 10px top margin from the container
         JPanel btnWrapper = new JPanel(new GridBagLayout());
         btnWrapper.setOpaque(false);
         btnWrapper.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
@@ -199,11 +206,9 @@ public class StudentDashboardPanel extends JPanel {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Draw rounded Navy_Med background
                 g2.setColor(AppTheme.NAVY_MED);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), AppTheme.CARD_RADIUS, AppTheme.CARD_RADIUS);
                 
-                // Draw subtle white rounded outline border
                 g2.setColor(new Color(255, 255, 255, 12));
                 g2.setStroke(new BasicStroke(1f));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, AppTheme.CARD_RADIUS, AppTheme.CARD_RADIUS);
@@ -255,7 +260,6 @@ public class StudentDashboardPanel extends JPanel {
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         titlePanel.setOpaque(false);
         
-        // A simple 4px wide JPanel acts as a solid colored indicator strip
         JPanel indicator = new JPanel();
         indicator.setBackground(AppTheme.TEAL);
         indicator.setPreferredSize(new Dimension(4, 20));
@@ -279,7 +283,6 @@ public class StudentDashboardPanel extends JPanel {
         yearSemesterCombo.setBackground(AppTheme.WHITE);
         yearSemesterCombo.addActionListener(e -> loadCourses());
         
-        // Align dropdown perfectly
         JPanel comboWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         comboWrapper.setOpaque(false);
         comboWrapper.add(yearSemesterCombo);
@@ -297,20 +300,51 @@ public class StudentDashboardPanel extends JPanel {
     }
     
     private void loadStudentData() {
-        currentStudent = (Student) AuthService.getInstance().getCurrentUser();
-        if (currentStudent != null) {
-            String firstName = currentStudent.getFullName().split(" ")[0];
+        try {
+            System.out.println("[DEBUG] StudentDashboardPanel: Loading student data...");
+            
+            // Get current user from AuthService
+            User user = AuthService.getInstance().getCurrentUser();
+            System.out.println("[DEBUG] Current user from AuthService: " + user);
+            
+            if (user instanceof Student) {
+                currentStudent = (Student) user;
+                System.out.println("[DEBUG] Student found: " + currentStudent.getFullName());
+                
+                String fullName = currentStudent.getFullName();
+                if (fullName != null && !fullName.isEmpty()) {
+                    String firstName = fullName.split(" ")[0];
+                    greetingLabel.setText(getGreeting());
+                    welcomeNameLabel.setText(firstName + "!");
+                    
+                    // Update navbar name
+                    if (navNameLabel != null) {
+                        navNameLabel.setText(firstName);
+                    }
+                }
+                
+                // Set combo box based on student's year/semester
+                int year = currentStudent.getYearOfStudy();
+                int semester = currentStudent.getSemester();
+                int index = (year - 1) * 2 + (semester - 1);
+                if (index >= 0 && index < yearSemesterCombo.getItemCount()) {
+                    yearSemesterCombo.setSelectedIndex(index);
+                }
+            } else {
+                System.out.println("[DEBUG] Current user is not a Student or is null");
+                greetingLabel.setText(getGreeting());
+                welcomeNameLabel.setText("Student!");
+                if (navNameLabel != null) {
+                    navNameLabel.setText("Student");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] Loading student data: " + e.getMessage());
+            e.printStackTrace();
             greetingLabel.setText(getGreeting());
-            welcomeNameLabel.setText(firstName + "!");
-            avatarLabel.setText(firstName.substring(0, 1).toUpperCase());
-            profileNameLabel.setText(currentStudent.getFullName());
-            
-            termValueLabel.setText("Year " + currentStudent.getYearOfStudy() + ", Sem " + currentStudent.getSemester());
-            deptValueLabel.setText(currentStudent.getDepartment());
-            
-            int index = (currentStudent.getYearOfStudy() - 1) * 2 + (currentStudent.getSemester() - 1);
-            if (index >= 0 && index < yearSemesterCombo.getItemCount()) {
-                yearSemesterCombo.setSelectedIndex(index);
+            welcomeNameLabel.setText("Student!");
+            if (navNameLabel != null) {
+                navNameLabel.setText("Student");
             }
         }
     }
@@ -319,6 +353,8 @@ public class StudentDashboardPanel extends JPanel {
         int selectedIndex = yearSemesterCombo.getSelectedIndex();
         int year = selectedIndex / 2 + 1;
         int semester = selectedIndex % 2 + 1;
+        
+        System.out.println("[DEBUG] Loading courses for Year: " + year + ", Semester: " + semester);
         
         SwingWorker<List<Course>, Void> worker = new SwingWorker<>() {
             @Override
@@ -330,6 +366,7 @@ public class StudentDashboardPanel extends JPanel {
             protected void done() {
                 try {
                     List<Course> courses = get();
+                    System.out.println("[DEBUG] Found " + courses.size() + " courses");
                     displayCourses(courses);
                 } catch (Exception e) {
                     e.printStackTrace();

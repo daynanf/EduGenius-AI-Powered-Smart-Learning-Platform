@@ -51,26 +51,30 @@ public class NavigationManager {
      * Navigate to a screen by name
      */
     public void navigateTo(String screenName) {
-        if (screenRegistry.containsKey(screenName)) {
-            historyStack.push(screenName);
-            cardLayout.show(mainContainer, screenName);
-            
-            // Update frame title based on screen
-            updateFrameTitle(screenName);
-        } else {
-            System.err.println("[ERROR] Screen not registered: " + screenName);
-        }
+        navigateTo(screenName, null);
     }
     
     /**
      * Navigate to a screen with parameters
      */
     public void navigateTo(String screenName, Map<String, Object> params) {
-        navigateTo(screenName);
-        // Pass parameters to the screen if it implements ParameterReceiver
-        JPanel panel = screenRegistry.get(screenName);
-        if (panel instanceof ParameterReceiver) {
-            ((ParameterReceiver) panel).receiveParameters(params);
+        if (screenRegistry.containsKey(screenName)) {
+            historyStack.push(screenName);
+            cardLayout.show(mainContainer, screenName);
+            
+            // Pass parameters to the screen if it implements ParameterReceiver
+            JPanel panel = screenRegistry.get(screenName);
+            if (panel instanceof ParameterReceiver) {
+                if (params == null) {
+                    params = new HashMap<>();
+                }
+                ((ParameterReceiver) panel).receiveParameters(params);
+            }
+            
+            // Update frame title based on screen
+            updateFrameTitle(screenName);
+        } else {
+            System.err.println("[ERROR] Screen not registered: " + screenName);
         }
     }
     
@@ -82,6 +86,13 @@ public class NavigationManager {
             historyStack.pop(); // Remove current
             String previousScreen = historyStack.peek();
             cardLayout.show(mainContainer, previousScreen);
+            
+            // Also notify the screen we're going back to
+            JPanel panel = screenRegistry.get(previousScreen);
+            if (panel instanceof ParameterReceiver) {
+                ((ParameterReceiver) panel).receiveParameters(new HashMap<>());
+            }
+            
             updateFrameTitle(previousScreen);
         }
     }
@@ -104,10 +115,22 @@ public class NavigationManager {
                     title = "Sign In | EduGenius";
                     break;
                 case "STUDENT_DASHBOARD":
-                    title = "Dashboard | EduGenius";
+                    title = "Student Dashboard | EduGenius";
                     break;
                 case "TEACHER_DASHBOARD":
                     title = "Teacher Dashboard | EduGenius";
+                    break;
+                case "AI_LEARNING":
+                    title = "AI Learning | EduGenius";
+                    break;
+                case "AI_TUTOR":
+                    title = "AI Tutor | EduGenius";
+                    break;
+                case "STUDY_PLAN":
+                    title = "Study Plan | EduGenius";
+                    break;
+                case "QUIZ_STUDENT":
+                    title = "Quiz | EduGenius";
                     break;
             }
             mainFrame.setTitle(title);
@@ -122,4 +145,6 @@ public class NavigationManager {
     }
 }
 
-
+/**
+ * Interface for panels that receive parameters
+ */
