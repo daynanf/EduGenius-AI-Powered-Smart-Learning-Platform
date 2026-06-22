@@ -25,7 +25,11 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
     private JButton sendButton;
     private List<String[]> conversationHistory;
     private JPanel mainChatPanel;
-    private CardLayout chatCardLayout;
+    private CardLayout centerCardLayout;
+    private JPanel centerCardsPanel;
+    private JPanel welcomePanel;
+    private JLabel welcomeTitleLabel;
+    private JPanel promptsGridPanel;
     private boolean isFirstMessage = true;
 
     public AITutorPanel() {
@@ -78,74 +82,159 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
 
         add(topBar, BorderLayout.NORTH);
 
-        // Main content with CardLayout for empty state vs chat
-        chatCardLayout = new CardLayout();
-        JPanel mainContainer = new JPanel(chatCardLayout);
-        mainContainer.setBackground(AppTheme.SURFACE);
-
-        // Empty state panel
-        // JPanel emptyStatePanel = createEmptyStatePanel();
-        // mainContainer.add(emptyStatePanel, "EMPTY");
-
         // Main chat panel
         mainChatPanel = createChatPanel();
-        mainContainer.add(mainChatPanel, "CHAT");
-
-        add(mainContainer, BorderLayout.CENTER);
+        add(mainChatPanel, BorderLayout.CENTER);
     }
 
     private void showEmptyState() {
-        chatCardLayout.show((JPanel) getComponent(1), "EMPTY");
+        if (centerCardLayout != null && centerCardsPanel != null) {
+            centerCardLayout.show(centerCardsPanel, "WELCOME");
+        }
         isFirstMessage = true;
     }
 
-    private JPanel createEmptyStatePanel() {
+    private JPanel createWelcomePanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(AppTheme.SURFACE);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.insets = new Insets(10, 0, 10, 0);
+        gbc.insets = new Insets(12, 24, 12, 24);
+        gbc.anchor = GridBagConstraints.CENTER;
 
         JLabel robotEmoji = new JLabel("🤖");
         robotEmoji.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 64));
         gbc.gridy = 0;
         panel.add(robotEmoji, gbc);
 
-        JLabel welcomeLabel = new JLabel(
-                "Hi! I'm your AI Tutor for " + (currentCourseName != null ? currentCourseName : "CS"));
-        welcomeLabel.setFont(AppTheme.FONT_H2);
-        welcomeLabel.setForeground(AppTheme.INK);
+        welcomeTitleLabel = new JLabel(
+                "Hi! I'm your AI Tutor for " + (currentCourseName != null ? currentCourseName : "Computer Science"));
+        welcomeTitleLabel.setFont(AppTheme.FONT_H1);
+        welcomeTitleLabel.setForeground(AppTheme.INK);
         gbc.gridy = 1;
-        panel.add(welcomeLabel, gbc);
+        panel.add(welcomeTitleLabel, gbc);
 
-        JLabel askLabel = new JLabel("Ask me anything about Computer Science!");
+        JLabel askLabel = new JLabel("Ask me anything to help you learn and master this course!");
         askLabel.setFont(AppTheme.FONT_BODY);
         askLabel.setForeground(AppTheme.MUTED);
         gbc.gridy = 2;
         panel.add(askLabel, gbc);
 
         // Suggested prompts grid
-        JPanel promptsGrid = new JPanel(new GridLayout(2, 2, 16, 16));
-        promptsGrid.setBackground(AppTheme.SURFACE);
-        promptsGrid.setBorder(BorderFactory.createEmptyBorder(32, 32, 32, 32));
+        promptsGridPanel = new JPanel(new GridLayout(2, 2, 16, 16));
+        promptsGridPanel.setBackground(AppTheme.SURFACE);
+        promptsGridPanel.setBorder(BorderFactory.createEmptyBorder(24, 32, 24, 32));
 
-        String[] prompts = {
-                "Explain Binary Search Trees with examples",
-                "What is time complexity? Give examples",
-                "Show me a LinkedList implementation in Java",
-                "Quiz me on sorting algorithms"
-        };
-
-        for (String prompt : prompts) {
-            JPanel promptCard = createPromptCard(prompt);
-            promptsGrid.add(promptCard);
-        }
+        updatePromptCards();
 
         gbc.gridy = 3;
-        panel.add(promptsGrid, gbc);
+        panel.add(promptsGridPanel, gbc);
 
         return panel;
+    }
+
+    private void updatePromptCards() {
+        if (promptsGridPanel == null) return;
+        promptsGridPanel.removeAll();
+        String[] prompts = getSuggestedPrompts(currentCourseName);
+        for (String prompt : prompts) {
+            JPanel promptCard = createPromptCard(prompt);
+            promptsGridPanel.add(promptCard);
+        }
+        promptsGridPanel.revalidate();
+        promptsGridPanel.repaint();
+    }
+
+    private String[] getSuggestedPrompts(String courseName) {
+        if (courseName == null) {
+            return new String[] {
+                "What is computer science?",
+                "How can you help me study?",
+                "Give me some general study tips",
+                "Explain how AI tutoring works"
+            };
+        }
+        
+        String lower = courseName.toLowerCase();
+        if (lower.contains("programming") || lower.contains("java") || lower.contains("object oriented")) {
+            return new String[] {
+                "Explain the concepts of Inheritance and Polymorphism in OOP",
+                "Show me a LinkedList implementation in Java",
+                "What is the difference between an abstract class and an interface?",
+                "How do pointers and memory allocation work in C/C++?"
+            };
+        } else if (lower.contains("data structures") || lower.contains("algorithm")) {
+            return new String[] {
+                "Explain Binary Search Trees with examples",
+                "What is time complexity? Explain Big O notation",
+                "Show me how Merge Sort works step-by-step",
+                "Quiz me on sorting and searching algorithms"
+            };
+        } else if (lower.contains("database") || lower.contains("sql")) {
+            return new String[] {
+                "Explain database normalization with 1NF, 2NF, and 3NF examples",
+                "What is the difference between INNER JOIN, LEFT JOIN, and RIGHT JOIN?",
+                "Explain ACID properties and transaction isolation levels",
+                "Write a SQL query to find the second highest salary in an employee table"
+            };
+        } else if (lower.contains("web") || lower.contains("javascript") || lower.contains("html") || lower.contains("css")) {
+            return new String[] {
+                "Explain the difference between let, const, and var in JavaScript",
+                "How does the client-server architecture work in web apps?",
+                "Explain RESTful APIs and common HTTP status codes",
+                "Show me how to center a div horizontally and vertically using CSS Flexbox"
+            };
+        } else if (lower.contains("artificial intelligence") || lower.contains("ai") || lower.contains("machine learning")) {
+            return new String[] {
+                "Explain the difference between supervised and unsupervised learning",
+                "What is neural network backpropagation?",
+                "Explain search algorithms like A* search and minimax",
+                "How do LLMs and neural networks process natural language?"
+            };
+        } else if (lower.contains("security") || lower.contains("cryptography")) {
+            return new String[] {
+                "What is the difference between symmetric and asymmetric encryption?",
+                "Explain how public key cryptography (RSA) works",
+                "What are common web vulnerabilities like SQL Injection and XSS?",
+                "Explain the concept of Salting in password hashing"
+            };
+        } else if (lower.contains("networking") || lower.contains("network")) {
+            return new String[] {
+                "Explain the 7 layers of the OSI model",
+                "What is the difference between TCP and UDP?",
+                "How do IP routing and DNS work?",
+                "Explain the handshake process in TCP connection establishment"
+            };
+        } else if (lower.contains("operating system") || lower.contains("os")) {
+            return new String[] {
+                "What is the difference between a process and a thread?",
+                "Explain CPU scheduling algorithms with examples",
+                "What is paging and virtual memory in OS?",
+                "Explain deadlock conditions and how to prevent them"
+            };
+        } else if (lower.contains("math") || lower.contains("calculus") || lower.contains("algebra") || lower.contains("statistics") || lower.contains("probability")) {
+            return new String[] {
+                "Explain the derivative and integration rules in Calculus",
+                "What is the difference between eigenvalues and eigenvectors?",
+                "Explain Bayes' Theorem with a simple example",
+                "What are normal distribution and standard deviation?"
+            };
+        } else if (lower.contains("software engineering")) {
+            return new String[] {
+                "Explain SOLID principles with examples",
+                "What is the difference between Agile, Scrum, and Waterfall?",
+                "Explain MVC architecture and why it is useful",
+                "What is requirements engineering and why is it critical?"
+            };
+        }
+        
+        return new String[] {
+            "Give me a quick overview of key concepts in " + courseName,
+            "What are the main topics covered in " + courseName + "?",
+            "Quiz me on the basics of " + courseName,
+            "Explain a complex concept from " + courseName + " with a real-world analogy"
+        };
     }
 
     private JPanel createPromptCard(String promptText) {
@@ -206,12 +295,23 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS));
         chatPanel.setBackground(AppTheme.SURFACE);
 
+        // Cards panel to switch between welcome and active chat
+        centerCardLayout = new CardLayout();
+        centerCardsPanel = new JPanel(centerCardLayout);
+        centerCardsPanel.setBackground(AppTheme.SURFACE);
+
+        // Welcome panel
+        welcomePanel = createWelcomePanel();
+        centerCardsPanel.add(welcomePanel, "WELCOME");
+
+        // Chat scroll pane
         chatScrollPane = new JScrollPane(chatPanel);
         chatScrollPane.setBorder(null);
         chatScrollPane.setBackground(AppTheme.SURFACE);
         chatScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        centerCardsPanel.add(chatScrollPane, "CHAT");
 
-        panel.add(chatScrollPane, BorderLayout.CENTER);
+        panel.add(centerCardsPanel, BorderLayout.CENTER);
 
         // Input area
         JPanel inputPanel = new JPanel(new BorderLayout());
@@ -306,8 +406,8 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         sendButton.setEnabled(false);
 
         // Switch to chat view if in empty state
-        if (chatPanel.getComponentCount() == 0) {
-            chatCardLayout.show((JPanel) getComponent(1), "CHAT");
+        if (isFirstMessage) {
+            centerCardLayout.show(centerCardsPanel, "CHAT");
             isFirstMessage = false;
         }
 
@@ -379,7 +479,10 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
             // Set preferred width (max 400px)
             int maxWidth = 400;
             int contentWidth = Math.min(maxWidth, calculateTextWidth(content, AppTheme.FONT_BODY) + 40);
-            textArea.setPreferredSize(new Dimension(contentWidth, 30)); // Let height auto-adjust
+            
+            textArea.setSize(new Dimension(contentWidth - 32, Short.MAX_VALUE));
+            int preferredHeight = textArea.getPreferredSize().height;
+            textArea.setPreferredSize(new Dimension(contentWidth, preferredHeight));
 
             // Wrap in scroll pane
             JScrollPane scrollPane = new JScrollPane(textArea);
@@ -435,7 +538,10 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
             // Set preferred width (max 500px)
             int maxWidth = 500;
             int contentWidth = Math.min(maxWidth, calculateTextWidth(content, AppTheme.FONT_BODY) + 40);
-            textArea.setPreferredSize(new Dimension(contentWidth, 30));
+            
+            textArea.setSize(new Dimension(contentWidth - 32, Short.MAX_VALUE));
+            int preferredHeight = textArea.getPreferredSize().height;
+            textArea.setPreferredSize(new Dimension(contentWidth, preferredHeight));
 
             // Wrap in scroll pane
             JScrollPane scrollPane = new JScrollPane(textArea);
@@ -467,15 +573,15 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         // Create temporary component to measure text
         JTextArea temp = new JTextArea(text);
         temp.setFont(font);
-        temp.setLineWrap(true);
-        temp.setWrapStyleWord(true);
-        temp.setSize(500, Integer.MAX_VALUE);
-        temp.setPreferredSize(new Dimension(500, Integer.MAX_VALUE));
-        
-        // Get the preferred width after layout
         FontMetrics fm = temp.getFontMetrics(font);
         if (fm == null) return text.length() * 7;
-        return fm.stringWidth(text);
+        
+        String[] lines = text.split("\n");
+        int maxW = 0;
+        for (String line : lines) {
+            maxW = Math.max(maxW, fm.stringWidth(line));
+        }
+        return maxW;
     }
 
     private JPanel createTypingIndicator() {
@@ -543,6 +649,11 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         JLabel titleLabel = (JLabel) ((JPanel) ((BorderLayout) getLayout())
                 .getLayoutComponent(BorderLayout.NORTH)).getComponent(1);
         titleLabel.setText("AI Tutor - " + (currentCourseName != null ? currentCourseName : "CS Assistant"));
+
+        if (welcomeTitleLabel != null) {
+            welcomeTitleLabel.setText("Hi! I'm your AI Tutor for " + (currentCourseName != null ? currentCourseName : "Computer Science"));
+        }
+        updatePromptCards();
     }
 
     private void scrollToBottom() {

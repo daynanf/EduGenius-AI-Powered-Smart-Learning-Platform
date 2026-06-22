@@ -108,7 +108,7 @@ public class QuizPanel extends JPanel implements ParameterReceiver {
         cardGbc.insets = new Insets(0, 0, 16, 0);
 
         // Title
-        JLabel titleLabel = new JLabel("🎯 AI Quiz Generator");
+        JLabel titleLabel = new JLabel(" AI Quiz Generator");
         titleLabel.setFont(AppTheme.FONT_H1);
         titleLabel.setForeground(AppTheme.TEAL);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -177,7 +177,7 @@ public class QuizPanel extends JPanel implements ParameterReceiver {
         card.add(questionCountCombo, cardGbc);
 
         // Generate button rounded using Graphics2D
-        JButton generateButton = new JButton("🚀 Generate Quiz with AI") {
+        JButton generateButton = new JButton(" Generate Quiz with AI") {
             private boolean isHovered = false;
             {
                 setContentAreaFilled(false);
@@ -261,7 +261,7 @@ public class QuizPanel extends JPanel implements ParameterReceiver {
         questionCounterLabel.setForeground(AppTheme.WHITE);
         topBar.add(questionCounterLabel, BorderLayout.WEST);
 
-        timerLabel = new JLabel("⏱️ --:--");
+        timerLabel = new JLabel("⏱ --:--");
         timerLabel.setFont(AppTheme.FONT_H3);
         timerLabel.setForeground(AppTheme.WHITE);
         topBar.add(timerLabel, BorderLayout.EAST);

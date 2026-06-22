@@ -3,6 +3,7 @@ package com.edugenius.views.teacher;
 import com.edugenius.config.AppTheme;
 import com.edugenius.models.QuizQuestion;
 import com.edugenius.ai.QuizAIService;
+import com.edugenius.ai.StudyPlanAIService;
 import com.edugenius.services.AuthService;
 import com.edugenius.views.NavigationManager;
 
@@ -20,6 +21,7 @@ import java.util.Collections;
 public class TeacherDashboardPanel extends JPanel {
 
     private QuizAIService aiService;
+    private StudyPlanAIService studyPlanService;
     private JTabbedPane tabbedPane;
     private JTextArea promptArea;
     private JComboBox<String> difficultyCombo;
@@ -45,6 +47,7 @@ public class TeacherDashboardPanel extends JPanel {
 
     public TeacherDashboardPanel() {
         aiService = QuizAIService.getInstance();
+        studyPlanService = StudyPlanAIService.getInstance();
         setLayout(new BorderLayout());
         setBackground(AppTheme.SURFACE);
         initUI();
@@ -56,7 +59,7 @@ public class TeacherDashboardPanel extends JPanel {
         navBar.setPreferredSize(new Dimension(0, 50));
         navBar.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
 
-        JLabel logoLabel = new JLabel("📚 EduGenius AI Workspace");
+        JLabel logoLabel = new JLabel(" EduGenius AI Workspace");
         logoLabel.setFont(AppTheme.FONT_H2);
         logoLabel.setForeground(AppTheme.WHITE);
         navBar.add(logoLabel, BorderLayout.WEST);
@@ -72,8 +75,8 @@ public class TeacherDashboardPanel extends JPanel {
 
         tabbedPane = new JTabbedPane();
         tabbedPane.setFont(AppTheme.FONT_BODY);
-        tabbedPane.addTab("🎯 AI Generator", createGeneratorPanel());
-        tabbedPane.addTab("🗃️ Saved History", createContentLibraryPanel());
+        tabbedPane.addTab(" AI Generator", createGeneratorPanel());
+        //tabbedPane.addTab("🗃️ Saved History", createContentLibraryPanel());
         add(tabbedPane, BorderLayout.CENTER);
     }
 
@@ -142,7 +145,7 @@ public class TeacherDashboardPanel extends JPanel {
 
         cGbc.gridy = 1; card.add(settingsRow, cGbc);
 
-        generateButton = new JButton("⚡ Generate Content via AI Engine");
+        generateButton = new JButton(" Generate Content via AI Engine");
         generateButton.setFont(AppTheme.FONT_BODY_BOLD);
         generateButton.setBackground(AppTheme.TEAL);
         generateButton.setForeground(AppTheme.WHITE);
@@ -198,7 +201,7 @@ public class TeacherDashboardPanel extends JPanel {
         String input = promptArea.getText().trim();
         if (input.isEmpty() || input.equals(QUIZ_PLACEHOLDER) || input.equals(LESSON_PLACEHOLDER)) return;
 
-        generateButton.setText("🤖 Building AI Material Content Elements...");
+        generateButton.setText(" Building AI Material Content Elements...");
         generateButton.setEnabled(false);
 
         if (isGeneratingQuiz) {
@@ -210,14 +213,11 @@ public class TeacherDashboardPanel extends JPanel {
                 err -> resetGenButton()
             );
         } else {
-            String lessonOutputText = "📚 STRUCTURED LESSON PLAN BLUEPRINT\n" +
-                    "Context Target Scope: " + input.toUpperCase() + "\n" +
-                    "Plan Scheduling Style: " + sizeTextField.getText().trim() + " Days Allocation [" + difficultyCombo.getSelectedItem() + " Level]\n" +
-                    "Instruction Type Structure: " + contentTypeCombo.getSelectedItem() + "\n\n" +
-                    "1. TOPIC LESSON CONCEPTS\n   • Technical definition overviews and paradigms.\n\n" +
-                    "2. FIELD EXAMPLES & WORKFLOWS\n   • Structured guidelines targeted for clean classroom presentation.";
-            displayLesson(lessonOutputText);
-            resetGenButton();
+            studyPlanService.generateStudyPlan(input + " [Type: " + contentTypeCombo.getSelectedItem() + ", Duration: " + sizeTextField.getText() + "]",
+                "Educational Course",
+                lessonText -> { displayLesson(lessonText); resetGenButton(); },
+                err -> { JOptionPane.showMessageDialog(this, "Error generating lesson: " + err); resetGenButton(); }
+            );
         }
     }
 
@@ -270,13 +270,18 @@ public class TeacherDashboardPanel extends JPanel {
 
         JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 6));
         actionRow.setBackground(AppTheme.SURFACE);
-        JButton saveBtn = new JButton("💾 Save Lesson Plan");
-        saveBtn.addActionListener(e -> {
-            savedLessonsLibrary.add(body);
-            refreshLibraryUI();
-            JOptionPane.showMessageDialog(this, "Lesson Strategy cataloged successfully!");
+        JButton pdfExportBtn = new JButton("📄 Export to PDF");
+        pdfExportBtn.setBackground(AppTheme.NAVY);
+        pdfExportBtn.setForeground(AppTheme.WHITE);
+        pdfExportBtn.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Export Lesson Plan to PDF");
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File chosenLocation = fileChooser.getSelectedFile();
+                JOptionPane.showMessageDialog(this, "Lesson plan exported to:\n" + chosenLocation.getAbsolutePath());
+            }
         });
-        actionRow.add(saveBtn);
+        actionRow.add(pdfExportBtn);
         generatedQuestionsPanel.add(actionRow);
         generatedQuestionsPanel.revalidate(); generatedQuestionsPanel.repaint();
     }
@@ -312,27 +317,34 @@ public class TeacherDashboardPanel extends JPanel {
         return mainPanel;
     }
 
-    // --- COMPILER-SAFE CARD RENDERER WITH UNBOUNDED FULL-WIDTH CHOICE DISPLAY ---
+    // --- COMPILER-SAFE CARD RENDERER WITH PROPER ALIGNMENT ---
     private class SafeReflectionCard extends JPanel {
         public SafeReflectionCard(QuizQuestion question) {
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setLayout(new BorderLayout());
             setBackground(Color.WHITE);
             setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(215, 220, 225), 1),
                 BorderFactory.createEmptyBorder(14, 14, 14, 14)
             ));
 
-            // Expanded width box to prevent early clipping text lines
-            JLabel qLabel = new JLabel("<html><body><b>Question: </b>" + question.getQuestionText() + "</body></html>");
+            JPanel contentPanel = new JPanel();
+            contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+            contentPanel.setBackground(Color.WHITE);
+            contentPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            // Question label with proper alignment
+            JLabel qLabel = new JLabel("<html><body style='width: 600px;'><b>Question: </b>" + question.getQuestionText() + "</body></html>");
             qLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            add(qLabel); add(Box.createVerticalStrut(8));
+            qLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            contentPanel.add(qLabel);
+            contentPanel.add(Box.createVerticalStrut(8));
 
             List<String> collectedOptions = new ArrayList<>();
             String answer = "";
             String explanation = "";
 
             try {
-                // 1. Scan via Methods
+                // 1. Scan via Methods - prioritize proper getters
                 for (Method m : question.getClass().getMethods()) {
                     m.setAccessible(true);
                     String name = m.getName().toLowerCase();
@@ -346,7 +358,7 @@ public class TeacherDashboardPanel extends JPanel {
                         } else if (res instanceof String && name.matches(".*[a-d1-4]$")) {
                             collectedOptions.add((String) res);
                         }
-                    } else if (name.contains("correct") || name.equals("getanswer")) {
+                    } else if ((name.equals("getcorrectoption") || name.equals("getanswer")) && answer.isEmpty()) {
                         Object res = m.invoke(question);
                         if (res != null) answer = res.toString();
                     } else if (name.contains("explanation") || name.contains("desc")) {
@@ -387,31 +399,42 @@ public class TeacherDashboardPanel extends JPanel {
                 // Failover protection block
             }
 
-            // Options parsing rendering layout context without fixed pixel width cuts
+            // Options rendering with proper alignment
             if (!collectedOptions.isEmpty()) {
                 char letter = 'A';
                 for (String text : collectedOptions) {
                     if (text != null && !text.trim().isEmpty()) {
-                        JLabel optLabel = new JLabel("<html><body><b>" + letter + ":</b> " + text + "</body></html>");
+                        JLabel optLabel = new JLabel("<html><body style='width: 550px;'><b>" + letter + ":</b> " + text + "</body></html>");
                         optLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                        add(optLabel); add(Box.createVerticalStrut(5));
+                        optLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                        contentPanel.add(optLabel);
+                        contentPanel.add(Box.createVerticalStrut(5));
                         letter++;
                     }
                 }
-                add(Box.createVerticalStrut(4));
+                contentPanel.add(Box.createVerticalStrut(4));
             }
 
+            // Correct answer with proper alignment
             if (!answer.isEmpty()) {
-                JLabel ansLabel = new JLabel("<html><body style='color: #155724; background-color: #D4EDDA; padding: 6px; border-radius: 4px;'><b>✅ Correct Answer:</b> " + answer + "</body></html>");
+                JLabel ansLabel = new JLabel("<html><body style='width: 550px; color: #155724; background-color: #D4EDDA; padding: 6px; border-radius: 4px;'><b>✅ Correct Answer:</b> " + answer + "</body></html>");
                 ansLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                add(ansLabel); add(Box.createVerticalStrut(6));
+                ansLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                ansLabel.setOpaque(true);
+                contentPanel.add(ansLabel);
+                contentPanel.add(Box.createVerticalStrut(6));
             }
 
+            // Explanation with proper alignment
             if (!explanation.isEmpty()) {
-                JLabel expLabel = new JLabel("<html><body style='color: #1E3A8A; background-color: #F0F9FF; padding: 6px; border-radius: 4px;'><b>💡 Explanation:</b> " + explanation + "</body></html>");
+                JLabel expLabel = new JLabel("<html><body style='width: 550px; color: #1E3A8A; background-color: #F0F9FF; padding: 6px; border-radius: 4px;'><b>💡 Explanation:</b> " + explanation + "</body></html>");
                 expLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                add(expLabel);
+                expLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                expLabel.setOpaque(true);
+                contentPanel.add(expLabel);
             }
+
+            add(contentPanel, BorderLayout.CENTER);
         }
     }
 }

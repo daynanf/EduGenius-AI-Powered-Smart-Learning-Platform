@@ -93,7 +93,7 @@ public class StudentDashboardPanel extends JPanel implements ParameterReceiver {
         navNameLabel = new JLabel("Student");
         navNameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         navNameLabel.setForeground(AppTheme.WHITE);
-        rightActionsPanel.add(navNameLabel);
+        //rightActionsPanel.add(navNameLabel);
 
         // Custom Styled Logout Button
         JButton logoutBtn = new JButton("Logout") {
@@ -192,7 +192,7 @@ public class StudentDashboardPanel extends JPanel implements ParameterReceiver {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(0, 0, 0, 0);
 
-        courseGridPanel = new JPanel(new GridLayout(0, 3, 20, 20));
+        courseGridPanel = new JPanel(new GridLayout(0, 3, 40, 30));
         courseGridPanel.setSize(250, 100);
         courseGridPanel.setBackground(AppTheme.SURFACE);
         content.add(courseGridPanel, gbc);
@@ -399,7 +399,7 @@ public class StudentDashboardPanel extends JPanel implements ParameterReceiver {
             courseGridPanel.setLayout(new BorderLayout());
             courseGridPanel.add(emptyLabel, BorderLayout.CENTER);
         } else {
-            courseGridPanel.setLayout(new GridLayout(0, 3, 20, 20));
+            courseGridPanel.setLayout(new GridLayout(0, 3, 40, 30));
             courseGridPanel.setSize(250, 100);
             for (Course course : courses) {
                 CourseCard card = new CourseCard(course);
