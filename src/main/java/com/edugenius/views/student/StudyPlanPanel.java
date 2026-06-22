@@ -72,26 +72,26 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
         JPanel titleRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         titleRow.setOpaque(false);
 
-        // Icon circle
-        JPanel iconCircle = new JPanel() {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(AppTheme.PURPLE);
-                g2.fillOval(0, 0, getWidth(), getHeight());
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        iconCircle.setPreferredSize(new Dimension(28, 28));
-        iconCircle.setOpaque(false);
-        iconCircle.setLayout(new GridBagLayout());
-        // FIX 2: plain text instead of emoji (emoji render as boxes on most Java/Windows setups)
-        JLabel iconLbl = new JLabel("SP");
-        iconLbl.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.BOLD, 10));
-        iconLbl.setForeground(Color.WHITE);
-        iconCircle.add(iconLbl);
-        titleRow.add(iconCircle);
+        // // Icon circle
+        // JPanel iconCircle = new JPanel() {
+        //     @Override protected void paintComponent(Graphics g) {
+        //         Graphics2D g2 = (Graphics2D) g.create();
+        //         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        //         g2.setColor(AppTheme.PURPLE);
+        //         g2.fillOval(0, 0, getWidth(), getHeight());
+        //         g2.dispose();
+        //         super.paintComponent(g);
+        //     }
+        // };
+        // iconCircle.setPreferredSize(new Dimension(28, 28));
+        // iconCircle.setOpaque(false);
+        // iconCircle.setLayout(new GridBagLayout());
+        // // FIX 2: plain text instead of emoji (emoji render as boxes on most Java/Windows setups)
+        // JLabel iconLbl = new JLabel("SP");
+        // iconLbl.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.BOLD, 10));
+        // iconLbl.setForeground(Color.WHITE);
+        // iconCircle.add(iconLbl);
+        // titleRow.add(iconCircle);
 
         JLabel titleLabel = new JLabel("AI Study Plan Generator");
         titleLabel.setFont(AppTheme.FONT_H2);
@@ -371,7 +371,7 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
         iconBox.setOpaque(false);
         iconBox.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel msg = new JLabel("<html><div style='text-align:center;width:220px;'>"
+        JLabel msg = new JLabel("<html><div  style='text-align:center; display: flex; justify-content: center; align-items: center; width:220px; margin'>"
                 + "Describe your learning goal above and click <b>Generate plan</b> "
                 + "to get your personalized roadmap</div></html>");
         msg.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.PLAIN, 13));

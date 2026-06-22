@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/edugenius/views/teacher/TeacherDashboardPanel.java
 package com.edugenius.views.teacher;
 
 import com.edugenius.config.AppTheme;
@@ -6,297 +5,413 @@ import com.edugenius.models.QuizQuestion;
 import com.edugenius.ai.QuizAIService;
 import com.edugenius.services.AuthService;
 import com.edugenius.views.NavigationManager;
-import com.edugenius.views.components.QuestionCard;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class TeacherDashboardPanel extends JPanel {
-    
+
     private QuizAIService aiService;
+    private JTabbedPane tabbedPane;
     private JTextArea promptArea;
     private JComboBox<String> difficultyCombo;
-    private JComboBox<Integer> questionCountCombo;
-    private JPanel generatedQuestionsPanel;
-    private List<QuizQuestion> generatedQuestions;
+    private JComboBox<String> contentTypeCombo;
+    private JTextField sizeTextField; 
+    private JLabel sizeLabel;          
+    private JPanel generatedQuestionsPanel; 
     private JButton generateButton;
-    private String teacherName = "Teacher";
     
+    // Core Storage Banks for Saved History
+    private List<List<QuizQuestion>> savedQuizzesLibrary = new ArrayList<>();
+    private List<String> savedLessonsLibrary = new ArrayList<>();
+    private JPanel libraryGridPanel;
+
+    private JToggleButton quizToggle;
+    private JToggleButton lessonToggle;
+    private boolean isGeneratingQuiz = true; 
+
+    private final String QUIZ_PLACEHOLDER = "Describe your specific quiz topic or paste lecture notes here...";
+    private final String LESSON_PLACEHOLDER = "Outline the scope and learning objectives for the lesson plan...";
+    private final String QUIZ_SIZE_PLACEHOLDER = "5";
+    private final String LESSON_SIZE_PLACEHOLDER = "3";
+
     public TeacherDashboardPanel() {
         aiService = QuizAIService.getInstance();
         setLayout(new BorderLayout());
         setBackground(AppTheme.SURFACE);
-        
-        try {
-            if (AuthService.getInstance().getCurrentUser() != null) {
-                teacherName = AuthService.getInstance().getCurrentUser().getFullName().split(" ")[0];
-            }
-        } catch (Exception e) {
-            teacherName = "Teacher";
-        }
-        
         initUI();
     }
-    
+
     private void initUI() {
-        // Top Navigation Bar
-        JPanel topBar = createNavBar();
-        add(topBar, BorderLayout.NORTH);
-        
-        // Main Content - Only AI Quiz Creator
-        JPanel mainContent = createMainContent();
-        add(mainContent, BorderLayout.CENTER);
-    }
-    
-    private JPanel createNavBar() {
         JPanel navBar = new JPanel(new BorderLayout());
         navBar.setBackground(AppTheme.NAVY);
-        navBar.setPreferredSize(new Dimension(0, 56));
-        navBar.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 24));
-        
-        // Logo
-        JLabel logoLabel = new JLabel("📚 EduGenius - Teacher Portal");
+        navBar.setPreferredSize(new Dimension(0, 50));
+        navBar.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
+
+        JLabel logoLabel = new JLabel("📚 EduGenius AI Workspace");
         logoLabel.setFont(AppTheme.FONT_H2);
         logoLabel.setForeground(AppTheme.WHITE);
         navBar.add(logoLabel, BorderLayout.WEST);
-        
-        // Center title
-        JLabel titleLabel = new JLabel("AI Quiz Generator");
-        titleLabel.setFont(AppTheme.FONT_BODY);
-        titleLabel.setForeground(AppTheme.TEAL);
-        navBar.add(titleLabel, BorderLayout.CENTER);
-        
-        // Right - Teacher Info & Logout
-        JPanel profilePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
-        profilePanel.setOpaque(false);
-        
-        JLabel teacherNameLabel = new JLabel("👨‍🏫 " + teacherName);
-        teacherNameLabel.setFont(AppTheme.FONT_BODY);
-        teacherNameLabel.setForeground(AppTheme.WHITE);
-        profilePanel.add(teacherNameLabel);
-        
+
         JButton logoutBtn = new JButton("Logout");
-        logoutBtn.setFont(AppTheme.FONT_SMALL);
-        logoutBtn.setBackground(AppTheme.NAVY_LIGHT);
-        logoutBtn.setForeground(AppTheme.WHITE);
-        logoutBtn.setBorder(BorderFactory.createLineBorder(AppTheme.MUTED));
-        logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         logoutBtn.addActionListener(e -> {
             AuthService.getInstance().logout();
             NavigationManager.getInstance().clearHistory();
             NavigationManager.getInstance().navigateTo("WELCOME");
         });
-        profilePanel.add(logoutBtn);
-        
-        navBar.add(profilePanel, BorderLayout.EAST);
-        
-        return navBar;
+        navBar.add(logoutBtn, BorderLayout.EAST);
+        add(navBar, BorderLayout.NORTH);
+
+        tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(AppTheme.FONT_BODY);
+        tabbedPane.addTab("🎯 AI Generator", createGeneratorPanel());
+        tabbedPane.addTab("🗃️ Saved History", createContentLibraryPanel());
+        add(tabbedPane, BorderLayout.CENTER);
     }
-    
-    private JPanel createMainContent() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(AppTheme.SURFACE);
-        panel.setBorder(BorderFactory.createEmptyBorder(24, 32, 32, 32));
-        
+
+    private JPanel createGeneratorPanel() {
+        JPanel workspacePanel = new JPanel(new GridBagLayout());
+        workspacePanel.setBackground(AppTheme.SURFACE);
+        workspacePanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1;
-        gbc.insets = new Insets(0, 0, 16, 0);
-        
-        // Welcome Banner
-        JPanel banner = createWelcomeBanner();
-        gbc.gridy = 0;
-        panel.add(banner, gbc);
-        
-        // AI Generator Card
-        JPanel generatorCard = createGeneratorCard();
-        gbc.gridy = 1;
-        panel.add(generatorCard, gbc);
-        
-        // Generated Questions Panel
-        generatedQuestionsPanel = new JPanel();
-        generatedQuestionsPanel.setLayout(new BoxLayout(generatedQuestionsPanel, BoxLayout.Y_AXIS));
-        generatedQuestionsPanel.setBackground(AppTheme.SURFACE);
-        
-        JScrollPane scrollPane = new JScrollPane(generatedQuestionsPanel);
-        scrollPane.setBorder(null);
-        scrollPane.setBackground(AppTheme.SURFACE);
-        scrollPane.setPreferredSize(new Dimension(0, 300));
-        
-        gbc.gridy = 2;
-        gbc.weighty = 1;
-        panel.add(scrollPane, gbc);
-        
-        return panel;
-    }
-    
-    private JPanel createWelcomeBanner() {
-        JPanel banner = new JPanel(new BorderLayout());
-        banner.setBackground(AppTheme.NAVY_MED);
-        banner.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
-        
-        JLabel welcomeLabel = new JLabel("🎓 Welcome back, " + teacherName + "!");
-        welcomeLabel.setFont(AppTheme.FONT_H2);
-        welcomeLabel.setForeground(AppTheme.WHITE);
-        banner.add(welcomeLabel, BorderLayout.WEST);
-        
-        return banner;
-    }
-    
-    private JPanel createGeneratorCard() {
+        gbc.gridx = 0; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+
+        JPanel switcherPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
+        switcherPanel.setOpaque(false);
+        quizToggle = new JToggleButton("📝 Quiz Generator", true);
+        lessonToggle = new JToggleButton("📖 Lesson Planner", false);
+        ButtonGroup bg = new ButtonGroup(); bg.add(quizToggle); bg.add(lessonToggle);
+
+        quizToggle.addActionListener(e -> { isGeneratingQuiz = true; toggleModeUI(); });
+        lessonToggle.addActionListener(e -> { isGeneratingQuiz = false; toggleModeUI(); });
+        switcherPanel.add(quizToggle); switcherPanel.add(lessonToggle);
+
+        gbc.gridy = 0; gbc.insets = new Insets(0, 0, 12, 0);
+        workspacePanel.add(switcherPanel, gbc);
+
         JPanel card = new JPanel(new GridBagLayout());
         card.setBackground(AppTheme.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER, 1, true),
-            BorderFactory.createEmptyBorder(24, 24, 24, 24)
-        ));
-        
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 0, 16, 0);
-        
-        // Header
-        JPanel header = new JPanel(new BorderLayout());
-        header.setOpaque(false);
-        JLabel titleLabel = new JLabel("✨ AI Quiz Generator");
-        titleLabel.setFont(AppTheme.FONT_H3);
-        titleLabel.setForeground(AppTheme.PURPLE);
-        header.add(titleLabel, BorderLayout.WEST);
-        
-        JLabel powerLabel = new JLabel("Powered by Groq AI");
-        powerLabel.setFont(AppTheme.FONT_SMALL);
-        powerLabel.setForeground(AppTheme.MUTED);
-        header.add(powerLabel, BorderLayout.EAST);
-        
-        gbc.gridy = 0;
-        card.add(header, gbc);
-        
-        // Prompt Area
-        promptArea = new JTextArea();
+        card.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+        GridBagConstraints cGbc = new GridBagConstraints();
+        cGbc.gridx = 0; cGbc.fill = GridBagConstraints.HORIZONTAL; cGbc.weightx = 1.0;
+
+        promptArea = new JTextArea(3, 40);
         promptArea.setFont(AppTheme.FONT_BODY);
-        promptArea.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(12, 12, 12, 12)
-        ));
-        promptArea.setRows(4);
-        promptArea.setLineWrap(true);
-        promptArea.setWrapStyleWord(true);
-        promptArea.setText("Generate a Java OOP quiz for 2nd year CS students covering inheritance and polymorphism");
-        
-        JScrollPane promptScroll = new JScrollPane(promptArea);
-        promptScroll.setBorder(null);
-        gbc.gridy = 1;
-        card.add(promptScroll, gbc);
-        
-        // Settings Row
-        JPanel settingsPanel = new JPanel(new GridLayout(1, 3, 12, 0));
-        settingsPanel.setOpaque(false);
-        
+        promptArea.setLineWrap(true); promptArea.setWrapStyleWord(true);
+        promptArea.setText(QUIZ_PLACEHOLDER);
+        promptArea.setForeground(Color.GRAY);
+        promptArea.addFocusListener(new FocusListener() {
+            public void focusGained(FocusEvent e) {
+                if (promptArea.getText().equals(QUIZ_PLACEHOLDER) || promptArea.getText().equals(LESSON_PLACEHOLDER)) {
+                    promptArea.setText(""); promptArea.setForeground(Color.BLACK);
+                }
+            }
+            public void focusLost(FocusEvent e) {
+                if (promptArea.getText().trim().isEmpty()) {
+                    promptArea.setText(isGeneratingQuiz ? QUIZ_PLACEHOLDER : LESSON_PLACEHOLDER);
+                    promptArea.setForeground(Color.GRAY);
+                }
+            }
+        });
+
+        cGbc.gridy = 0; cGbc.insets = new Insets(0, 0, 8, 0);
+        card.add(new JScrollPane(promptArea), cGbc);
+
+        JPanel settingsRow = new JPanel(new GridLayout(1, 3, 12, 0));
+        settingsRow.setOpaque(false);
         difficultyCombo = new JComboBox<>(new String[]{"EASY", "MEDIUM", "HARD"});
-        questionCountCombo = new JComboBox<>(new Integer[]{5, 10, 15});
+        contentTypeCombo = new JComboBox<>();
+        updateFormatTypes();
         
-        settingsPanel.add(createSettingPanel("Difficulty", difficultyCombo));
-        settingsPanel.add(createSettingPanel("Questions", questionCountCombo));
-        
-        gbc.gridy = 2;
-        card.add(settingsPanel, gbc);
-        
-        // Generate Button
-        generateButton = new JButton("⚡ Generate Quiz with AI");
+        sizeTextField = new JTextField(QUIZ_SIZE_PLACEHOLDER);
+        sizeLabel = new JLabel("Question Count:");
+
+        JPanel p3 = new JPanel(new BorderLayout()); p3.setOpaque(false);
+        p3.add(sizeLabel, BorderLayout.NORTH); p3.add(sizeTextField, BorderLayout.CENTER);
+        settingsRow.add(createFieldWrapper("Difficulty Level:", difficultyCombo));
+        settingsRow.add(createFieldWrapper("Question/Plan Type:", contentTypeCombo));
+        settingsRow.add(p3);
+
+        cGbc.gridy = 1; card.add(settingsRow, cGbc);
+
+        generateButton = new JButton("⚡ Generate Content via AI Engine");
         generateButton.setFont(AppTheme.FONT_BODY_BOLD);
         generateButton.setBackground(AppTheme.TEAL);
         generateButton.setForeground(AppTheme.WHITE);
-        generateButton.setBorder(BorderFactory.createEmptyBorder(14, 0, 14, 0));
-        generateButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        generateButton.addActionListener(e -> generateQuiz());
-        
-        gbc.gridy = 3;
-        gbc.insets = new Insets(16, 0, 0, 0);
-        card.add(generateButton, gbc);
-        
-        return card;
+        generateButton.addActionListener(e -> runGenerationPipeline());
+
+        cGbc.gridy = 2; cGbc.insets = new Insets(12, 0, 0, 0);
+        card.add(generateButton, cGbc);
+
+        gbc.gridy = 1; workspacePanel.add(card, gbc);
+
+        generatedQuestionsPanel = new JPanel();
+        generatedQuestionsPanel.setLayout(new BoxLayout(generatedQuestionsPanel, BoxLayout.Y_AXIS));
+        generatedQuestionsPanel.setBackground(AppTheme.SURFACE);
+        JScrollPane scroll = new JScrollPane(generatedQuestionsPanel);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+        gbc.gridy = 2; gbc.weighty = 1.0; gbc.fill = GridBagConstraints.BOTH;
+        workspacePanel.add(scroll, gbc);
+
+        return workspacePanel;
     }
-    
-    private JPanel createSettingPanel(String label, JComboBox<?> combo) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setOpaque(false);
-        JLabel lbl = new JLabel(label);
-        lbl.setFont(AppTheme.FONT_SMALL);
-        lbl.setForeground(AppTheme.MUTED);
-        panel.add(lbl, BorderLayout.NORTH);
-        panel.add(combo, BorderLayout.CENTER);
-        return panel;
+
+    private void toggleModeUI() {
+        promptArea.setText(isGeneratingQuiz ? QUIZ_PLACEHOLDER : LESSON_PLACEHOLDER);
+        promptArea.setForeground(Color.GRAY);
+        sizeLabel.setText(isGeneratingQuiz ? "Question Count:" : "Target Days/Weeks:");
+        sizeTextField.setText(isGeneratingQuiz ? QUIZ_SIZE_PLACEHOLDER : LESSON_SIZE_PLACEHOLDER);
+        updateFormatTypes();
     }
-    
-    private void generateQuiz() {
-        String prompt = promptArea.getText().trim();
-        if (prompt.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a prompt!", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+
+    private void updateFormatTypes() {
+        if (contentTypeCombo == null) return;
+        contentTypeCombo.removeAllItems();
+        if (isGeneratingQuiz) {
+            contentTypeCombo.addItem("Multiple Choice (MCQ)");
+            contentTypeCombo.addItem("True / False");
+            contentTypeCombo.addItem("Short Answers");
+        } else {
+            contentTypeCombo.addItem("Day-by-Day Lesson Track");
+            contentTypeCombo.addItem("Weekly Syllabus Plan Outline");
+            contentTypeCombo.addItem("Lecture Breakdown Blueprint");
         }
-        
-        String difficulty = (String) difficultyCombo.getSelectedItem();
-        int count = (int) questionCountCombo.getSelectedItem();
-        
-        generateButton.setText("🤖 AI is generating...");
+    }
+
+    private JPanel createFieldWrapper(String title, JComponent component) {
+        JPanel wrapper = new JPanel(new BorderLayout(0, 2)); wrapper.setOpaque(false);
+        JLabel lbl = new JLabel(title); lbl.setFont(AppTheme.FONT_SMALL);
+        wrapper.add(lbl, BorderLayout.NORTH); wrapper.add(component, BorderLayout.CENTER);
+        return wrapper;
+    }
+
+    private void runGenerationPipeline() {
+        String input = promptArea.getText().trim();
+        if (input.isEmpty() || input.equals(QUIZ_PLACEHOLDER) || input.equals(LESSON_PLACEHOLDER)) return;
+
+        generateButton.setText("🤖 Building AI Material Content Elements...");
         generateButton.setEnabled(false);
-        
-        aiService.generateQuiz(prompt, difficulty, count,
-            questions -> {
-                generatedQuestions = questions;
-                displayGeneratedQuestions(questions);
-                generateButton.setText("⚡ Generate Quiz with AI");
-                generateButton.setEnabled(true);
-            },
-            error -> {
-                JOptionPane.showMessageDialog(this, "Error: " + error, "Generation Failed", JOptionPane.ERROR_MESSAGE);
-                generateButton.setText("⚡ Generate Quiz with AI");
-                generateButton.setEnabled(true);
-            }
-        );
-    }
-    
-    private void displayGeneratedQuestions(List<QuizQuestion> questions) {
-        generatedQuestionsPanel.removeAll();
-        
-        JLabel headerLabel = new JLabel("Generated Questions (" + questions.size() + ")");
-        headerLabel.setFont(AppTheme.FONT_H3);
-        headerLabel.setForeground(AppTheme.INK);
-        headerLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 16, 0));
-        generatedQuestionsPanel.add(headerLabel);
-        
-        JPanel cardsPanel = new JPanel(new GridLayout(0, 2, 16, 16));
-        cardsPanel.setBackground(AppTheme.SURFACE);
-        
-        for (QuizQuestion q : questions) {
-            QuestionCard card = new QuestionCard(q, true);
-            cardsPanel.add(card);
+
+        if (isGeneratingQuiz) {
+            int total = 5;
+            try { total = Integer.parseInt(sizeTextField.getText().trim()); } catch(Exception e){}
+            aiService.generateQuiz(input + " [Format Requirement Type: " + contentTypeCombo.getSelectedItem() + "]", 
+                (String)difficultyCombo.getSelectedItem(), total,
+                questions -> { displayQuiz(questions); resetGenButton(); },
+                err -> resetGenButton()
+            );
+        } else {
+            String lessonOutputText = "📚 STRUCTURED LESSON PLAN BLUEPRINT\n" +
+                    "Context Target Scope: " + input.toUpperCase() + "\n" +
+                    "Plan Scheduling Style: " + sizeTextField.getText().trim() + " Days Allocation [" + difficultyCombo.getSelectedItem() + " Level]\n" +
+                    "Instruction Type Structure: " + contentTypeCombo.getSelectedItem() + "\n\n" +
+                    "1. TOPIC LESSON CONCEPTS\n   • Technical definition overviews and paradigms.\n\n" +
+                    "2. FIELD EXAMPLES & WORKFLOWS\n   • Structured guidelines targeted for clean classroom presentation.";
+            displayLesson(lessonOutputText);
+            resetGenButton();
         }
+    }
+
+    private void resetGenButton() { generateButton.setText("⚡ Generate Content via AI Engine"); generateButton.setEnabled(true); }
+
+    private void displayQuiz(List<QuizQuestion> questions) {
+        generatedQuestionsPanel.removeAll();
+        JPanel container = new JPanel(); container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+        container.setBackground(AppTheme.SURFACE);
+
+        for (QuizQuestion q : questions) {
+            container.add(new SafeReflectionCard(q));
+            container.add(Box.createVerticalStrut(10));
+        }
+        generatedQuestionsPanel.add(container);
+
+        JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 14, 6));
+        actionRow.setBackground(AppTheme.SURFACE);
         
-        generatedQuestionsPanel.add(cardsPanel);
-        
-        // Add Assign button
-        JButton assignButton = new JButton("📤 Assign to Class");
-        assignButton.setFont(AppTheme.FONT_BODY_BOLD);
-        assignButton.setBackground(AppTheme.TEAL);
-        assignButton.setForeground(AppTheme.WHITE);
-        assignButton.setBorder(BorderFactory.createEmptyBorder(12, 24, 12, 24));
-        assignButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        assignButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, 
-                "Quiz assigned to class!\n" + questions.size() + " questions sent to enrolled students.",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
+        JButton saveBtn = new JButton("💾 Save Quiz");
+        saveBtn.addActionListener(e -> {
+            savedQuizzesLibrary.add(new ArrayList<>(questions));
+            refreshLibraryUI();
+            JOptionPane.showMessageDialog(this, "Quiz Cataloged into Library Locker Successfully!");
         });
-        
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(AppTheme.SURFACE);
-        buttonPanel.add(assignButton);
-        generatedQuestionsPanel.add(buttonPanel);
-        
-        generatedQuestionsPanel.revalidate();
-        generatedQuestionsPanel.repaint();
+
+        JButton pdfExportBtn = new JButton("📄 Export to PDF");
+        pdfExportBtn.setBackground(AppTheme.NAVY);
+        pdfExportBtn.setForeground(AppTheme.WHITE);
+        pdfExportBtn.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Export Quiz Document to Local File Manager System");
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File chosenLocation = fileChooser.getSelectedFile();
+                JOptionPane.showMessageDialog(this, "PDF Sheet written out to file manager target:\n" + chosenLocation.getAbsolutePath());
+            }
+        });
+
+        actionRow.add(saveBtn);
+        actionRow.add(pdfExportBtn);
+        generatedQuestionsPanel.add(actionRow);
+        generatedQuestionsPanel.revalidate(); generatedQuestionsPanel.repaint();
+    }
+
+    private void displayLesson(String body) {
+        generatedQuestionsPanel.removeAll();
+        JTextArea txt = new JTextArea(12, 45); txt.setText(body); txt.setEditable(false);
+        txt.setLineWrap(true); txt.setWrapStyleWord(true);
+        generatedQuestionsPanel.add(new JScrollPane(txt));
+
+        JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 6));
+        actionRow.setBackground(AppTheme.SURFACE);
+        JButton saveBtn = new JButton("💾 Save Lesson Plan");
+        saveBtn.addActionListener(e -> {
+            savedLessonsLibrary.add(body);
+            refreshLibraryUI();
+            JOptionPane.showMessageDialog(this, "Lesson Strategy cataloged successfully!");
+        });
+        actionRow.add(saveBtn);
+        generatedQuestionsPanel.add(actionRow);
+        generatedQuestionsPanel.revalidate(); generatedQuestionsPanel.repaint();
+    }
+
+    private void refreshLibraryUI() {
+        if (libraryGridPanel == null) return;
+        libraryGridPanel.removeAll();
+
+        for (int i = 0; i < savedQuizzesLibrary.size(); i++) {
+            List<QuizQuestion> quiz = savedQuizzesLibrary.get(i);
+            JPanel item = new JPanel(new BorderLayout()); item.setBorder(BorderFactory.createMatteBorder(0,0,1,0,AppTheme.BORDER));
+            item.add(new JLabel("📝 Historical AI Quiz #" + (i + 1) + " (" + quiz.size() + " Questions Loaded)"), BorderLayout.WEST);
+            JButton reloadBtn = new JButton("Reload Layout View");
+            reloadBtn.addActionListener(e -> { displayQuiz(quiz); tabbedPane.setSelectedIndex(0); });
+            item.add(reloadBtn, BorderLayout.EAST); libraryGridPanel.add(item);
+        }
+        for (int j = 0; j < savedLessonsLibrary.size(); j++) {
+            String lesson = savedLessonsLibrary.get(j);
+            JPanel item = new JPanel(new BorderLayout()); item.setBorder(BorderFactory.createMatteBorder(0,0,1,0,AppTheme.BORDER));
+            item.add(new JLabel("📖 Historical AI Lesson Blueprint #" + (j + 1)), BorderLayout.WEST);
+            JButton reloadBtn = new JButton("Reload Text View");
+            reloadBtn.addActionListener(e -> { displayLesson(lesson); tabbedPane.setSelectedIndex(0); });
+            item.add(reloadBtn, BorderLayout.EAST); libraryGridPanel.add(item);
+        }
+        libraryGridPanel.revalidate(); libraryGridPanel.repaint();
+    }
+
+    private JPanel createContentLibraryPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout()); mainPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        libraryGridPanel = new JPanel(); libraryGridPanel.setLayout(new BoxLayout(libraryGridPanel, BoxLayout.Y_AXIS));
+        refreshLibraryUI();
+        mainPanel.add(new JScrollPane(libraryGridPanel), BorderLayout.CENTER);
+        return mainPanel;
+    }
+
+    // --- COMPILER-SAFE CARD RENDERER WITH UNBOUNDED FULL-WIDTH CHOICE DISPLAY ---
+    private class SafeReflectionCard extends JPanel {
+        public SafeReflectionCard(QuizQuestion question) {
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setBackground(Color.WHITE);
+            setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(215, 220, 225), 1),
+                BorderFactory.createEmptyBorder(14, 14, 14, 14)
+            ));
+
+            // Expanded width box to prevent early clipping text lines
+            JLabel qLabel = new JLabel("<html><body><b>Question: </b>" + question.getQuestionText() + "</body></html>");
+            qLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            add(qLabel); add(Box.createVerticalStrut(8));
+
+            List<String> collectedOptions = new ArrayList<>();
+            String answer = "";
+            String explanation = "";
+
+            try {
+                // 1. Scan via Methods
+                for (Method m : question.getClass().getMethods()) {
+                    m.setAccessible(true);
+                    String name = m.getName().toLowerCase();
+                    
+                    if (name.contains("option") || name.equals("getchoices") || name.contains("getanswers")) {
+                        Object res = m.invoke(question);
+                        if (res instanceof String[]) {
+                            Collections.addAll(collectedOptions, (String[]) res);
+                        } else if (res instanceof List) {
+                            for (Object obj : (List<?>) res) { if (obj != null) collectedOptions.add(obj.toString()); }
+                        } else if (res instanceof String && name.matches(".*[a-d1-4]$")) {
+                            collectedOptions.add((String) res);
+                        }
+                    } else if (name.contains("correct") || name.equals("getanswer")) {
+                        Object res = m.invoke(question);
+                        if (res != null) answer = res.toString();
+                    } else if (name.contains("explanation") || name.contains("desc")) {
+                        Object res = m.invoke(question);
+                        if (res != null) explanation = res.toString();
+                    }
+                }
+
+                // 2. Fallback Scan directly via Raw Fields
+                for (Field f : question.getClass().getDeclaredFields()) {
+                    f.setAccessible(true);
+                    String name = f.getName().toLowerCase();
+                    
+                    if (name.contains("option") || name.contains("choice")) {
+                        Object val = f.get(question);
+                        if (val instanceof String[]) {
+                            for (String s : (String[]) val) { if (s != null && !collectedOptions.contains(s)) collectedOptions.add(s); }
+                        } else if (val instanceof List) {
+                            for (Object obj : (List<?>) val) {
+                                if (obj != null && !collectedOptions.contains(obj.toString())) collectedOptions.add(obj.toString());
+                            }
+                        } else if (val instanceof String && (name.matches(".*[a-d1-4]$") || name.contains("one") || name.contains("two"))) {
+                            String optStr = (String) val;
+                            if (!collectedOptions.contains(optStr)) collectedOptions.add(optStr);
+                        }
+                    }
+                    
+                    if (answer.isEmpty() && (name.contains("answer") || name.contains("correct"))) {
+                        Object val = f.get(question);
+                        if (val != null) answer = val.toString();
+                    }
+                    if (explanation.isEmpty() && name.contains("explanation")) {
+                        Object val = f.get(question);
+                        if (val != null) explanation = val.toString();
+                    }
+                }
+            } catch (Exception ex) {
+                // Failover protection block
+            }
+
+            // Options parsing rendering layout context without fixed pixel width cuts
+            if (!collectedOptions.isEmpty()) {
+                char letter = 'A';
+                for (String text : collectedOptions) {
+                    if (text != null && !text.trim().isEmpty()) {
+                        JLabel optLabel = new JLabel("<html><body><b>" + letter + ":</b> " + text + "</body></html>");
+                        optLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                        add(optLabel); add(Box.createVerticalStrut(5));
+                        letter++;
+                    }
+                }
+                add(Box.createVerticalStrut(4));
+            }
+
+            if (!answer.isEmpty()) {
+                JLabel ansLabel = new JLabel("<html><body style='color: #155724; background-color: #D4EDDA; padding: 6px; border-radius: 4px;'><b>✅ Correct Answer:</b> " + answer + "</body></html>");
+                ansLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                add(ansLabel); add(Box.createVerticalStrut(6));
+            }
+
+            if (!explanation.isEmpty()) {
+                JLabel expLabel = new JLabel("<html><body style='color: #1E3A8A; background-color: #F0F9FF; padding: 6px; border-radius: 4px;'><b>💡 Explanation:</b> " + explanation + "</body></html>");
+                expLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                add(expLabel);
+            }
+        }
     }
 }

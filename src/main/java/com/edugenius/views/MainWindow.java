@@ -91,7 +91,7 @@ public class MainWindow extends JFrame {
     }
     
     private void showWelcomeScreen() {
-        navManager.navigateTo("WElCOME");
+        navManager.navigateTo("STUDENT_DASHBOARD");
     }
     
     /**

@@ -29,13 +29,12 @@ public class CourseCard extends JPanel {
         
         setLayout(new BorderLayout());
         setOpaque(false); // Enable transparency so rounded corners draw properly
-        setPreferredSize(new Dimension(240, 170));
-        setSize(250,170);
+        setPreferredSize(new Dimension(200, 170));
         setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         // Resolve course accent color
         try {
-            accentColor = null ;
+            accentColor = Color.decode(course.getIconColor()); ;
         } catch (Exception e) {
             accentColor = AppTheme.TEAL_DARK;
         }

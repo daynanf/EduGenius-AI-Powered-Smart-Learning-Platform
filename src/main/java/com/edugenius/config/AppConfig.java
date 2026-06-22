@@ -54,7 +54,7 @@ public class AppConfig {
         properties.setProperty("groq.api.key", "");
         properties.setProperty("groq.model", "llama-3.3-70b-versatile");
         properties.setProperty("groq.max.tokens.quiz", "1200");
-        properties.setProperty("groq.max.tokens.tutor", "800");
+        properties.setProperty("groq.max.tokens.tutor", "1800");
         properties.setProperty("groq.max.tokens.plan", "600");
         properties.setProperty("app.name", "EduGenius");
         properties.setProperty("app.version", "1.0.0");

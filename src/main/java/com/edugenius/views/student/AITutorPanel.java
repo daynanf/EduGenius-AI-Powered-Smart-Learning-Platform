@@ -24,10 +24,9 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
     private JTextField inputField;
     private JButton sendButton;
     private List<String[]> conversationHistory;
-    private JPanel suggestedPromptsPanel;
-    private JPanel emptyStatePanel;
     private JPanel mainChatPanel;
     private CardLayout chatCardLayout;
+    private boolean isFirstMessage = true;
 
     public AITutorPanel() {
         aiService = TutorAIService.getInstance();
@@ -35,6 +34,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         setLayout(new BorderLayout());
         setBackground(AppTheme.SURFACE);
         initUI();
+        showEmptyState();
     }
 
     @Override
@@ -42,6 +42,9 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         this.currentCourseId = (int) params.get("courseId");
         this.currentCourseName = (String) params.get("courseName");
         updateWelcomeMessage();
+        if (chatPanel.getComponentCount() == 0) {
+            showEmptyState();
+        }
     }
 
     private void initUI() {
@@ -59,8 +62,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         backButton.addActionListener(e -> NavigationManager.getInstance().navigateTo("AI_LEARNING"));
         topBar.add(backButton, BorderLayout.WEST);
 
-        JLabel titleLabel = new JLabel(
-                " AI Tutor - " + (currentCourseName != null ? currentCourseName : "CS Assistant"));
+        JLabel titleLabel = new JLabel("AI Tutor - " + (currentCourseName != null ? currentCourseName : "CS Assistant"));
         titleLabel.setFont(AppTheme.FONT_H2);
         titleLabel.setForeground(AppTheme.WHITE);
         topBar.add(titleLabel, BorderLayout.CENTER);
@@ -81,8 +83,8 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         JPanel mainContainer = new JPanel(chatCardLayout);
         mainContainer.setBackground(AppTheme.SURFACE);
 
-        // // Empty state panel
-        // emptyStatePanel = createEmptyStatePanel();
+        // Empty state panel
+        // JPanel emptyStatePanel = createEmptyStatePanel();
         // mainContainer.add(emptyStatePanel, "EMPTY");
 
         // Main chat panel
@@ -90,9 +92,11 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         mainContainer.add(mainChatPanel, "CHAT");
 
         add(mainContainer, BorderLayout.CENTER);
+    }
 
-        // Show empty state initially
-        chatCardLayout.show(mainContainer, "EMPTY");
+    private void showEmptyState() {
+        chatCardLayout.show((JPanel) getComponent(1), "EMPTY");
+        isFirstMessage = true;
     }
 
     private JPanel createEmptyStatePanel() {
@@ -103,7 +107,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         gbc.gridx = 0;
         gbc.insets = new Insets(10, 0, 10, 0);
 
-        JLabel robotEmoji = new JLabel("");
+        JLabel robotEmoji = new JLabel("🤖");
         robotEmoji.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 64));
         gbc.gridy = 0;
         panel.add(robotEmoji, gbc);
@@ -185,11 +189,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         card.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        JLabel iconLabel = new JLabel("");
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
-        card.add(iconLabel, BorderLayout.NORTH);
-
-        JLabel textLabel = new JLabel("<html><div style='width:180px;'>" + promptText + "</div></html>");
+        JLabel textLabel = new JLabel("<html><div style='width:180px; font-family: Segoe UI; font-size: 13px;'>" + promptText + "</div></html>");
         textLabel.setFont(AppTheme.FONT_BODY);
         textLabel.setForeground(AppTheme.INK);
         card.add(textLabel, BorderLayout.CENTER);
@@ -284,8 +284,6 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         sendButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         sendButton.addActionListener(e -> sendMessage());
 
-        // Add padding around the send button so it doesn't stretch to the very
-        // top/bottom of the input panel
         JPanel sendWrapper = new JPanel(new BorderLayout());
         sendWrapper.setOpaque(false);
         sendWrapper.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 0));
@@ -310,6 +308,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         // Switch to chat view if in empty state
         if (chatPanel.getComponentCount() == 0) {
             chatCardLayout.show((JPanel) getComponent(1), "CHAT");
+            isFirstMessage = false;
         }
 
         // Add user message bubble
@@ -325,9 +324,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
 
         aiService.sendMessage(conversationHistory, message, currentCourseName,
                 response -> {
-                    // Remove typing indicator
                     chatPanel.remove(typingIndicator);
-                    // Add AI response
                     addMessageBubble("assistant", response);
                     conversationHistory.add(new String[] { "assistant", response });
                     sendButton.setEnabled(true);
@@ -335,7 +332,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
                 },
                 error -> {
                     chatPanel.remove(typingIndicator);
-                    addMessageBubble("assistant", " " + error + "\n\nPlease check your API key or try again.");
+                    addMessageBubble("assistant", "⚠️ " + error + "\n\nPlease check your API key or try again.");
                     sendButton.setEnabled(true);
                     scrollToBottom();
                 });
@@ -353,6 +350,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         if (role.equals("user")) {
             bubbleContent.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 8));
 
+            // Create scrollable text card with rounded corners
             JPanel textCard = new JPanel(new BorderLayout()) {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -365,21 +363,38 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
                 }
             };
             textCard.setOpaque(false);
-            textCard.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+            textCard.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
+            // Text area with scroll
             JTextArea textArea = new JTextArea(content);
             textArea.setFont(AppTheme.FONT_BODY);
             textArea.setForeground(AppTheme.WHITE);
-            textArea.setOpaque(false);
+            textArea.setBackground(new Color(0, 201, 167));
             textArea.setLineWrap(true);
             textArea.setWrapStyleWord(true);
             textArea.setEditable(false);
+            textArea.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+            textArea.setOpaque(true);
 
-            // Calculate preferred size
-            int width = Math.min(400, content.length() * 6);
-            textArea.setPreferredSize(new Dimension(width, textArea.getPreferredSize().height));
+            // Set preferred width (max 400px)
+            int maxWidth = 400;
+            int contentWidth = Math.min(maxWidth, calculateTextWidth(content, AppTheme.FONT_BODY) + 40);
+            textArea.setPreferredSize(new Dimension(contentWidth, 30)); // Let height auto-adjust
 
-            textCard.add(textArea, BorderLayout.CENTER);
+            // Wrap in scroll pane
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setBorder(null);
+            scrollPane.setOpaque(false);
+            scrollPane.getViewport().setOpaque(false);
+            scrollPane.setBackground(new Color(0, 201, 167));
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+            // Remove scroll bar background
+            scrollPane.getVerticalScrollBar().setBackground(new Color(0, 201, 167));
+            scrollPane.getVerticalScrollBar().setOpaque(false);
+
+            textCard.add(scrollPane, BorderLayout.CENTER);
             bubbleContent.add(textCard);
         } else {
             bubbleContent.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 8));
@@ -388,6 +403,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
             avatarLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
             bubbleContent.add(avatarLabel);
 
+            // Create scrollable text card with rounded corners
             JPanel textCard = new JPanel(new BorderLayout()) {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -403,21 +419,38 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
                 }
             };
             textCard.setOpaque(false);
-            textCard.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+            textCard.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
+            // Text area with scroll
             JTextArea textArea = new JTextArea(content);
             textArea.setFont(AppTheme.FONT_BODY);
             textArea.setForeground(AppTheme.INK);
-            textArea.setOpaque(false);
+            textArea.setBackground(AppTheme.WHITE);
             textArea.setLineWrap(true);
             textArea.setWrapStyleWord(true);
             textArea.setEditable(false);
+            textArea.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+            textArea.setOpaque(true);
 
-            // Calculate preferred size
-            int width = Math.min(500, content.length() * 5);
-            textArea.setPreferredSize(new Dimension(width, textArea.getPreferredSize().height));
+            // Set preferred width (max 500px)
+            int maxWidth = 500;
+            int contentWidth = Math.min(maxWidth, calculateTextWidth(content, AppTheme.FONT_BODY) + 40);
+            textArea.setPreferredSize(new Dimension(contentWidth, 30));
 
-            textCard.add(textArea, BorderLayout.CENTER);
+            // Wrap in scroll pane
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setBorder(null);
+            scrollPane.setOpaque(false);
+            scrollPane.getViewport().setOpaque(false);
+            scrollPane.setBackground(AppTheme.WHITE);
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+            // Remove scroll bar background
+            scrollPane.getVerticalScrollBar().setBackground(AppTheme.WHITE);
+            scrollPane.getVerticalScrollBar().setOpaque(false);
+
+            textCard.add(scrollPane, BorderLayout.CENTER);
             bubbleContent.add(textCard);
         }
 
@@ -425,6 +458,24 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         chatPanel.add(bubble);
         chatPanel.revalidate();
         chatPanel.repaint();
+        
+        // Force scroll to bottom after adding
+        SwingUtilities.invokeLater(() -> scrollToBottom());
+    }
+
+    private int calculateTextWidth(String text, Font font) {
+        // Create temporary component to measure text
+        JTextArea temp = new JTextArea(text);
+        temp.setFont(font);
+        temp.setLineWrap(true);
+        temp.setWrapStyleWord(true);
+        temp.setSize(500, Integer.MAX_VALUE);
+        temp.setPreferredSize(new Dimension(500, Integer.MAX_VALUE));
+        
+        // Get the preferred width after layout
+        FontMetrics fm = temp.getFontMetrics(font);
+        if (fm == null) return text.length() * 7;
+        return fm.stringWidth(text);
     }
 
     private JPanel createTypingIndicator() {
@@ -475,7 +526,6 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         });
         timer.start();
 
-        // Store timer to stop it later
         indicator.putClientProperty("timer", timer);
 
         return indicator;
@@ -486,13 +536,13 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         conversationHistory.clear();
         chatPanel.revalidate();
         chatPanel.repaint();
-        chatCardLayout.show((JPanel) getComponent(1), "EMPTY");
+        showEmptyState();
     }
 
     private void updateWelcomeMessage() {
         JLabel titleLabel = (JLabel) ((JPanel) ((BorderLayout) getLayout())
                 .getLayoutComponent(BorderLayout.NORTH)).getComponent(1);
-        titleLabel.setText("🤖 AI Tutor - " + (currentCourseName != null ? currentCourseName : "CS Assistant"));
+        titleLabel.setText("AI Tutor - " + (currentCourseName != null ? currentCourseName : "CS Assistant"));
     }
 
     private void scrollToBottom() {
