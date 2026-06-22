@@ -55,7 +55,7 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             JOptionPane.showMessageDialog(
                 null,
-                "⚠️ Database Connection Failed!\n\n" +
+                " Database Connection Failed!\n\n" +
                 "Please check:\n" +
                 "1. MySQL server is running\n" +
                 "2. Database exists\n" +

@@ -60,7 +60,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         topBar.add(backButton, BorderLayout.WEST);
 
         JLabel titleLabel = new JLabel(
-                "🤖 AI Tutor - " + (currentCourseName != null ? currentCourseName : "CS Assistant"));
+                " AI Tutor - " + (currentCourseName != null ? currentCourseName : "CS Assistant"));
         titleLabel.setFont(AppTheme.FONT_H2);
         titleLabel.setForeground(AppTheme.WHITE);
         topBar.add(titleLabel, BorderLayout.CENTER);
@@ -81,9 +81,9 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         JPanel mainContainer = new JPanel(chatCardLayout);
         mainContainer.setBackground(AppTheme.SURFACE);
 
-        // Empty state panel
-        emptyStatePanel = createEmptyStatePanel();
-        mainContainer.add(emptyStatePanel, "EMPTY");
+        // // Empty state panel
+        // emptyStatePanel = createEmptyStatePanel();
+        // mainContainer.add(emptyStatePanel, "EMPTY");
 
         // Main chat panel
         mainChatPanel = createChatPanel();
@@ -103,7 +103,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         gbc.gridx = 0;
         gbc.insets = new Insets(10, 0, 10, 0);
 
-        JLabel robotEmoji = new JLabel("🤖");
+        JLabel robotEmoji = new JLabel("");
         robotEmoji.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 64));
         gbc.gridy = 0;
         panel.add(robotEmoji, gbc);
@@ -185,7 +185,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
         card.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        JLabel iconLabel = new JLabel("💬");
+        JLabel iconLabel = new JLabel("");
         iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
         card.add(iconLabel, BorderLayout.NORTH);
 
@@ -335,7 +335,7 @@ public class AITutorPanel extends JPanel implements ParameterReceiver {
                 },
                 error -> {
                     chatPanel.remove(typingIndicator);
-                    addMessageBubble("assistant", "⚠️ " + error + "\n\nPlease check your API key or try again.");
+                    addMessageBubble("assistant", " " + error + "\n\nPlease check your API key or try again.");
                     sendButton.setEnabled(true);
                     scrollToBottom();
                 });

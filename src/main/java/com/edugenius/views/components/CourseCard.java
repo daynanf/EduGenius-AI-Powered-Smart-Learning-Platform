@@ -35,9 +35,9 @@ public class CourseCard extends JPanel {
         
         // Resolve course accent color
         try {
-            accentColor = Color.decode(course.getIconColor());
+            accentColor = null ;
         } catch (Exception e) {
-            accentColor = AppTheme.TEAL;
+            accentColor = AppTheme.TEAL_DARK;
         }
         
         // 1. Central Details Content Panel
