@@ -169,6 +169,7 @@ public class TeacherDashboardPanel extends JPanel {
     }
 
     private void toggleModeUI() {
+        generatedQuestionsPanel.removeAll();
         promptArea.setText(isGeneratingQuiz ? QUIZ_PLACEHOLDER : LESSON_PLACEHOLDER);
         promptArea.setForeground(Color.GRAY);
         sizeLabel.setText(isGeneratingQuiz ? "Question Count:" : "Target Days/Weeks:");
