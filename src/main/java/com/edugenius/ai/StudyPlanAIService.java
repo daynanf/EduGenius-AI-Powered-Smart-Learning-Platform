@@ -33,7 +33,7 @@ public class StudyPlanAIService {
                                    Consumer<String> onSuccess, Consumer<String> onError) {
         String systemPrompt = "You are an expert study plan creator for AAU CS students. " +
                               "Create a detailed, actionable weekly study plan. " +
-                              "Include specific topics, daily tasks, estimated hours, and resources. " +
+                              "Include specific topics, daily tasks, estimated hours, and resources. and also if the user asks  other topics rather that the given one tell him  about hte given one  polity but also give the requsted servies  " +
                               "Format with clear headings using emojis for each week and day.";
         
         String fullPrompt = "Course: " + courseName + "\nStudent request: " + userPrompt + 

@@ -39,6 +39,10 @@ public class TeacherDashboardPanel extends JPanel {
     private JToggleButton quizToggle;
     private JToggleButton lessonToggle;
     private boolean isGeneratingQuiz = true; 
+    
+    // Storage for last generated content for export
+    private List<QuizQuestion> lastGeneratedQuestions = new ArrayList<>();
+    private String lastLessonText = "";
 
     private final String QUIZ_PLACEHOLDER = "Describe your specific quiz topic or paste lecture notes here...";
     private final String LESSON_PLACEHOLDER = "Outline the scope and learning objectives for the lesson plan...";
@@ -89,8 +93,8 @@ public class TeacherDashboardPanel extends JPanel {
 
         JPanel switcherPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
         switcherPanel.setOpaque(false);
-        quizToggle = new JToggleButton("📝 Quiz Generator", true);
-        lessonToggle = new JToggleButton("📖 Lesson Planner", false);
+        quizToggle = new JToggleButton(" Quiz Generator", true);
+        lessonToggle = new JToggleButton(" Lesson Planner", false);
         ButtonGroup bg = new ButtonGroup(); bg.add(quizToggle); bg.add(lessonToggle);
 
         quizToggle.addActionListener(e -> { isGeneratingQuiz = true; toggleModeUI(); });
@@ -222,9 +226,10 @@ public class TeacherDashboardPanel extends JPanel {
         }
     }
 
-    private void resetGenButton() { generateButton.setText("⚡ Generate Content via AI Engine"); generateButton.setEnabled(true); }
+    private void resetGenButton() { generateButton.setText(" Generate Content via AI Engine"); generateButton.setEnabled(true); }
 
     private void displayQuiz(List<QuizQuestion> questions) {
+        lastGeneratedQuestions = new ArrayList<>(questions);
         generatedQuestionsPanel.removeAll();
         JPanel container = new JPanel(); container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         container.setBackground(AppTheme.SURFACE);
@@ -238,24 +243,17 @@ public class TeacherDashboardPanel extends JPanel {
         JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 14, 6));
         actionRow.setBackground(AppTheme.SURFACE);
         
-        JButton saveBtn = new JButton("💾 Save Quiz");
+        JButton saveBtn = new JButton("Save Quiz");
         saveBtn.addActionListener(e -> {
             savedQuizzesLibrary.add(new ArrayList<>(questions));
             refreshLibraryUI();
             JOptionPane.showMessageDialog(this, "Quiz Cataloged into Library Locker Successfully!");
         });
 
-        JButton pdfExportBtn = new JButton("📄 Export to PDF");
+        JButton pdfExportBtn = new JButton(" Export to PDF");
         pdfExportBtn.setBackground(AppTheme.NAVY);
         pdfExportBtn.setForeground(AppTheme.WHITE);
-        pdfExportBtn.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Export Quiz Document to Local File Manager System");
-            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                File chosenLocation = fileChooser.getSelectedFile();
-                JOptionPane.showMessageDialog(this, "PDF Sheet written out to file manager target:\n" + chosenLocation.getAbsolutePath());
-            }
-        });
+        pdfExportBtn.addActionListener(e -> saveQuizAsText(lastGeneratedQuestions));
 
         actionRow.add(saveBtn);
         actionRow.add(pdfExportBtn);
@@ -264,6 +262,7 @@ public class TeacherDashboardPanel extends JPanel {
     }
 
     private void displayLesson(String body) {
+        lastLessonText = body;
         generatedQuestionsPanel.removeAll();
         JTextArea txt = new JTextArea(12, 45); txt.setText(body); txt.setEditable(false);
         txt.setLineWrap(true); txt.setWrapStyleWord(true);
@@ -271,17 +270,10 @@ public class TeacherDashboardPanel extends JPanel {
 
         JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 6));
         actionRow.setBackground(AppTheme.SURFACE);
-        JButton pdfExportBtn = new JButton("📄 Export to PDF");
+        JButton pdfExportBtn = new JButton(" Export to PDF");
         pdfExportBtn.setBackground(AppTheme.NAVY);
         pdfExportBtn.setForeground(AppTheme.WHITE);
-        pdfExportBtn.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Export Lesson Plan to PDF");
-            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                File chosenLocation = fileChooser.getSelectedFile();
-                JOptionPane.showMessageDialog(this, "Lesson plan exported to:\n" + chosenLocation.getAbsolutePath());
-            }
-        });
+        pdfExportBtn.addActionListener(e -> saveLessonAsText(lastLessonText));
         actionRow.add(pdfExportBtn);
         generatedQuestionsPanel.add(actionRow);
         generatedQuestionsPanel.revalidate(); generatedQuestionsPanel.repaint();
@@ -294,7 +286,7 @@ public class TeacherDashboardPanel extends JPanel {
         for (int i = 0; i < savedQuizzesLibrary.size(); i++) {
             List<QuizQuestion> quiz = savedQuizzesLibrary.get(i);
             JPanel item = new JPanel(new BorderLayout()); item.setBorder(BorderFactory.createMatteBorder(0,0,1,0,AppTheme.BORDER));
-            item.add(new JLabel("📝 Historical AI Quiz #" + (i + 1) + " (" + quiz.size() + " Questions Loaded)"), BorderLayout.WEST);
+            item.add(new JLabel(" Historical AI Quiz #" + (i + 1) + " (" + quiz.size() + " Questions Loaded)"), BorderLayout.WEST);
             JButton reloadBtn = new JButton("Reload Layout View");
             reloadBtn.addActionListener(e -> { displayQuiz(quiz); tabbedPane.setSelectedIndex(0); });
             item.add(reloadBtn, BorderLayout.EAST); libraryGridPanel.add(item);
@@ -302,7 +294,7 @@ public class TeacherDashboardPanel extends JPanel {
         for (int j = 0; j < savedLessonsLibrary.size(); j++) {
             String lesson = savedLessonsLibrary.get(j);
             JPanel item = new JPanel(new BorderLayout()); item.setBorder(BorderFactory.createMatteBorder(0,0,1,0,AppTheme.BORDER));
-            item.add(new JLabel("📖 Historical AI Lesson Blueprint #" + (j + 1)), BorderLayout.WEST);
+            item.add(new JLabel(" Historical AI Lesson Blueprint #" + (j + 1)), BorderLayout.WEST);
             JButton reloadBtn = new JButton("Reload Text View");
             reloadBtn.addActionListener(e -> { displayLesson(lesson); tabbedPane.setSelectedIndex(0); });
             item.add(reloadBtn, BorderLayout.EAST); libraryGridPanel.add(item);
@@ -316,6 +308,47 @@ public class TeacherDashboardPanel extends JPanel {
         refreshLibraryUI();
         mainPanel.add(new JScrollPane(libraryGridPanel), BorderLayout.CENTER);
         return mainPanel;
+    }
+
+    private void saveQuizAsText(List<QuizQuestion> questions) {
+        if (questions == null || questions.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No quiz content to save.");
+            return;
+        }
+        JFileChooser fc = new JFileChooser();
+        fc.setSelectedFile(new File("quiz.txt"));
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            try (java.io.PrintWriter pw = new java.io.PrintWriter(fc.getSelectedFile())) {
+                for (int i = 0; i < questions.size(); i++) {
+                    QuizQuestion q = questions.get(i);
+                    pw.println("Question " + (i + 1) + ": " + q.getQuestionText());
+                    pw.println();
+                    pw.println("Correct Answer: " + (q.getCorrectOption() != null ? q.getCorrectOption() : "N/A"));
+                    pw.println();
+                    pw.println("---\n");
+                }
+                JOptionPane.showMessageDialog(this, "Quiz saved successfully to: " + fc.getSelectedFile().getAbsolutePath());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Could not save file: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void saveLessonAsText(String lessonText) {
+        if (lessonText == null || lessonText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No lesson content to save.");
+            return;
+        }
+        JFileChooser fc = new JFileChooser();
+        fc.setSelectedFile(new File("lesson-plan.txt"));
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            try (java.io.PrintWriter pw = new java.io.PrintWriter(fc.getSelectedFile())) {
+                pw.print(lessonText);
+                JOptionPane.showMessageDialog(this, "Lesson plan saved successfully to: " + fc.getSelectedFile().getAbsolutePath());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Could not save file: " + ex.getMessage());
+            }
+        }
     }
 
     // --- COMPILER-SAFE CARD RENDERER WITH PROPER ALIGNMENT ---
