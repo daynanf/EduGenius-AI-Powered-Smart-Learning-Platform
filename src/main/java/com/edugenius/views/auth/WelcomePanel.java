@@ -188,8 +188,9 @@ public class WelcomePanel extends JPanel {
         
         aauIdField = new JTextField();
         aauIdField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        aauIdField.setBorder(createRoundedBorder(8, 10));
-        aauIdField.setToolTipText("Format: UGR/1234/15, SGR/1234/15, or EMP/1234/15");        addFocusHighlight(aauIdField);        gbc.gridy = 3;
+        aauIdField.setBorder(createFocusableRoundedBorder(8, 10));
+        aauIdField.setToolTipText("Format: UGR/1234/15, SGR/1234/15, or EMP/1234/15");
+        addFocusHighlight(aauIdField);        gbc.gridy = 3;
         gbc.insets = new Insets(0, 0, 16, 0);
         card.add(aauIdField, gbc);
         
@@ -203,7 +204,8 @@ public class WelcomePanel extends JPanel {
         
         fullNameField = new JTextField();
         fullNameField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        fullNameField.setBorder(createRoundedBorder(8, 10));        addFocusHighlight(fullNameField);        gbc.gridy = 5;
+        fullNameField.setBorder(createFocusableRoundedBorder(8, 10));
+        addFocusHighlight(fullNameField);        gbc.gridy = 5;
         gbc.insets = new Insets(0, 0, 16, 0);
         card.add(fullNameField, gbc);
         
@@ -217,7 +219,8 @@ public class WelcomePanel extends JPanel {
         
         passwordField = new JPasswordField();
         passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        passwordField.setBorder(createRoundedBorder(8, 10));        addFocusHighlight(passwordField);        gbc.gridy = 7;
+        passwordField.setBorder(createFocusableRoundedBorder(8, 10));
+        addFocusHighlight(passwordField);        gbc.gridy = 7;
         gbc.insets = new Insets(0, 0, 16, 0);
         card.add(passwordField, gbc);
         
@@ -231,8 +234,9 @@ public class WelcomePanel extends JPanel {
         
         roleCombo = new JComboBox<>(new String[]{"Student", "Teacher"});
         roleCombo.setFont(AppTheme.FONT_BODY);
-        roleCombo.setBorder(createRoundedBorder(8, 10));
-        roleCombo.addActionListener(e -> toggleConditionalFields());        addFocusHighlight(roleCombo);        gbc.gridy = 9;
+        roleCombo.setBorder(createFocusableRoundedBorder(8, 10));
+        roleCombo.addActionListener(e -> toggleConditionalFields());
+        addFocusHighlight(roleCombo);        gbc.gridy = 9;
         gbc.insets = new Insets(0, 0, 16, 0);
         card.add(roleCombo, gbc);
         
@@ -321,8 +325,9 @@ public class WelcomePanel extends JPanel {
         yearCombo.setFont(AppTheme.FONT_BODY);
         semesterCombo = new JComboBox<>(new String[]{"Semester 1", "Semester 2"});
         semesterCombo.setFont(AppTheme.FONT_BODY);
-        yearCombo.setBorder(createRoundedBorder(4, 8));
-        semesterCombo.setBorder(createRoundedBorder(4, 8));        addFocusHighlight(yearCombo);
+        yearCombo.setBorder(createFocusableRoundedBorder(4, 8));
+        semesterCombo.setBorder(createFocusableRoundedBorder(4, 8));
+        addFocusHighlight(yearCombo);
         addFocusHighlight(semesterCombo);        panel.add(yearCombo);
         panel.add(semesterCombo);
         
