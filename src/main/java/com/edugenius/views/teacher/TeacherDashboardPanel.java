@@ -80,7 +80,6 @@ public class TeacherDashboardPanel extends JPanel {
         tabbedPane = new JTabbedPane();
         tabbedPane.setFont(AppTheme.FONT_BODY);
         tabbedPane.addTab(" AI Generator", createGeneratorPanel());
-        //tabbedPane.addTab("🗃️ Saved History", createContentLibraryPanel());
         add(tabbedPane, BorderLayout.CENTER);
     }
 
@@ -176,7 +175,7 @@ public class TeacherDashboardPanel extends JPanel {
         generatedQuestionsPanel.removeAll();
         promptArea.setText(isGeneratingQuiz ? QUIZ_PLACEHOLDER : LESSON_PLACEHOLDER);
         promptArea.setForeground(Color.GRAY);
-        sizeLabel.setText(isGeneratingQuiz ? "Question Count:" : "Target Days/Weeks:");
+        sizeLabel.setText(isGeneratingQuiz ? "Question Count:" : "Target Weeks:");
         sizeTextField.setText(isGeneratingQuiz ? QUIZ_SIZE_PLACEHOLDER : LESSON_SIZE_PLACEHOLDER);
         updateFormatTypes();
     }
@@ -255,7 +254,7 @@ public class TeacherDashboardPanel extends JPanel {
         pdfExportBtn.setForeground(AppTheme.WHITE);
         pdfExportBtn.addActionListener(e -> saveQuizAsText(lastGeneratedQuestions));
 
-        actionRow.add(saveBtn);
+        //actionRow.add(saveBtn);
         actionRow.add(pdfExportBtn);
         generatedQuestionsPanel.add(actionRow);
         generatedQuestionsPanel.revalidate(); generatedQuestionsPanel.repaint();
@@ -264,9 +263,24 @@ public class TeacherDashboardPanel extends JPanel {
     private void displayLesson(String body) {
         lastLessonText = body;
         generatedQuestionsPanel.removeAll();
-        JTextArea txt = new JTextArea(12, 45); txt.setText(body); txt.setEditable(false);
-        txt.setLineWrap(true); txt.setWrapStyleWord(true);
-        generatedQuestionsPanel.add(new JScrollPane(txt));
+        
+        JTextArea txt = new JTextArea(body);
+        txt.setFont(AppTheme.FONT_BODY);
+        txt.setEditable(false);
+        txt.setLineWrap(true);
+        txt.setWrapStyleWord(true);
+        txt.setBackground(AppTheme.WHITE);
+        txt.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(215, 220, 225), 1),
+                BorderFactory.createEmptyBorder(14, 14, 14, 14)));
+
+        int availableWidth = Math.max(400, generatedQuestionsPanel.getWidth() - 32);
+        txt.setSize(new Dimension(availableWidth, Short.MAX_VALUE));
+        int preferredHeight = txt.getPreferredSize().height;
+        txt.setPreferredSize(new Dimension(availableWidth, preferredHeight));
+
+        generatedQuestionsPanel.add(txt);
+        generatedQuestionsPanel.add(Box.createVerticalStrut(10));
 
         JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 6));
         actionRow.setBackground(AppTheme.SURFACE);
@@ -276,7 +290,8 @@ public class TeacherDashboardPanel extends JPanel {
         pdfExportBtn.addActionListener(e -> saveLessonAsText(lastLessonText));
         actionRow.add(pdfExportBtn);
         generatedQuestionsPanel.add(actionRow);
-        generatedQuestionsPanel.revalidate(); generatedQuestionsPanel.repaint();
+        generatedQuestionsPanel.revalidate();
+        generatedQuestionsPanel.repaint();
     }
 
     private void refreshLibraryUI() {

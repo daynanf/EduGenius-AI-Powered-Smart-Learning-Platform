@@ -43,7 +43,7 @@ public class TutorAIService {
                               "- Ask clarifying questions if needed\n" +
                               "- Keep responses focused (3-5 paragraphs max)\n" +
                               "- Use emojis occasionally to be engaging 🎓\n" +
-                              "If a student asks about Ethiopian CS curriculum, relate to AAU courses. and also if the user asks  other topics rather that the given one tell him  about hte given one  polity but also give the requsted servies \n" +
+                              "If a student asks about Ethiopian CS curriculum, relate to AAU courses.tell the user if he askes outside the course given above politly and generate for asked one but tell them they are not in hte course content  \n" +
                               "If you don't know something, say so honestly.";
         
         Thread thread = new Thread(() -> {

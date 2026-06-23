@@ -79,7 +79,6 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
 
         bar.add(titleRow, BorderLayout.CENTER);
 
-        // AI badge — FIX 2: no emoji
         JLabel badge = new JLabel("* Powered by AI") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -321,52 +320,63 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
     // ─── Output states ────────────────────────────────────────────────────────
 
     private void showEmptyState() {
-        outputBody.removeAll();
-        JPanel empty = new JPanel();
-        empty.setOpaque(false);
-        empty.setLayout(new BoxLayout(empty, BoxLayout.Y_AXIS));
-        empty.setBorder(new EmptyBorder(48, 0, 48, 0));
+    outputBody.removeAll();
 
-        // FIX 2: drawn clipboard icon — no emoji
-        JPanel iconBox = new JPanel() {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0xEEEDFE));
-                g2.fillOval(0, 0, 44, 44);
-                g2.setColor(new Color(0x7F77DD));
-                g2.setStroke(new BasicStroke(2f));
-                g2.drawRoundRect(14, 10, 16, 22, 3, 3);
-                g2.drawLine(18, 10, 18, 7); g2.drawLine(26, 10, 26, 7);
-                g2.drawLine(18, 7, 26, 7);
-                g2.drawLine(17, 17, 27, 17);
-                g2.drawLine(17, 21, 27, 21);
-                g2.drawLine(17, 25, 23, 25);
-                g2.dispose();
-            }
-        };
-        iconBox.setPreferredSize(new Dimension(44, 44));
-        iconBox.setMaximumSize(new Dimension(44, 44));
-        iconBox.setOpaque(false);
-        iconBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+    JPanel empty = new JPanel(new GridBagLayout());
+    empty.setOpaque(false);
 
-        JLabel msg = new JLabel("<html><div  style='text-align:center; display: flex; justify-content: center; align-items: center; width:220px; margin'>"
-                + "Describe your learning goal above and click <b>Generate plan</b> "
-                + "to get your personalized roadmap</div></html>");
-        msg.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.PLAIN, 13));
-        msg.setForeground(new Color(0x888780));
-        msg.setAlignmentX(Component.CENTER_ALIGNMENT);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.anchor = GridBagConstraints.CENTER;
 
-        empty.add(Box.createVerticalGlue());
-        empty.add(iconBox);
-        empty.add(Box.createVerticalStrut(12));
-        empty.add(msg);
-        empty.add(Box.createVerticalGlue());
+    JPanel iconBox = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                RenderingHints.VALUE_ANTIALIAS_ON);
 
-        outputBody.add(empty, BorderLayout.CENTER);
-        outputBody.revalidate();
-        outputBody.repaint();
-    }
+            g2.setColor(new Color(0xEEEDFE));
+            g2.fillOval(0, 0, 44, 44);
+
+            g2.setColor(new Color(0x7F77DD));
+            g2.setStroke(new BasicStroke(2f));
+            g2.drawRoundRect(14, 10, 16, 22, 3, 3);
+            g2.drawLine(18, 10, 18, 7);
+            g2.drawLine(26, 10, 26, 7);
+            g2.drawLine(18, 7, 26, 7);
+            g2.drawLine(17, 17, 27, 17);
+            g2.drawLine(17, 21, 27, 21);
+            g2.drawLine(17, 25, 23, 25);
+
+            g2.dispose();
+        }
+    };
+
+    iconBox.setPreferredSize(new Dimension(44, 44));
+    iconBox.setOpaque(false);
+
+    JLabel msg = new JLabel(
+        "<html><div style='text-align:center;width:220px;'>"
+        + "Describe your learning goal above and click <b>Generate plan</b> "
+        + "to get your personalized roadmap"
+        + "</div></html>"
+    );
+    msg.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.PLAIN, 13));
+    msg.setForeground(new Color(0x888780));
+
+    gbc.gridy = 0;
+    gbc.insets = new Insets(0, 0, 12, 0);
+    empty.add(iconBox, gbc);
+
+    gbc.gridy = 1;
+    gbc.insets = new Insets(0, 0, 0, 0);
+    empty.add(msg, gbc);
+
+    outputBody.add(empty, BorderLayout.CENTER);
+    outputBody.revalidate();
+    outputBody.repaint();
+}
 
     private void showLoadingState() {
         outputBody.removeAll();
@@ -494,7 +504,6 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
     private JPanel buildDayRow(String dayName, String task, String hrs) {
         JPanel row = new JPanel(new BorderLayout(10, 0));
         row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         row.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(AppTheme.BORDER.getRed(),
@@ -507,10 +516,21 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
         dayLbl.setPreferredSize(new Dimension(72, 20));
         row.add(dayLbl, BorderLayout.WEST);
 
-        JLabel taskLbl = new JLabel(task);
-        taskLbl.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.PLAIN, 12));
-        taskLbl.setForeground(AppTheme.INK);
-        row.add(taskLbl, BorderLayout.CENTER);
+        JTextArea taskArea = new JTextArea(task);
+        taskArea.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.PLAIN, 12));
+        taskArea.setForeground(AppTheme.INK);
+        taskArea.setOpaque(false);
+        taskArea.setEditable(false);
+        taskArea.setLineWrap(true);
+        taskArea.setWrapStyleWord(true);
+
+        int parentWidth = outputBody != null ? outputBody.getWidth() : 0;
+        int availableWidth = Math.max(200, parentWidth - 180);
+        taskArea.setSize(new Dimension(availableWidth, Short.MAX_VALUE));
+        int preferredHeight = taskArea.getPreferredSize().height;
+        taskArea.setPreferredSize(new Dimension(availableWidth, preferredHeight));
+
+        row.add(taskArea, BorderLayout.CENTER);
 
         if (hrs != null && !hrs.isEmpty()) {
             JLabel hrsBadge = new JLabel(hrs) {
@@ -530,6 +550,10 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
             row.add(hrsBadge, BorderLayout.EAST);
         }
 
+        int rowHeight = Math.max(36, preferredHeight + 12);
+        row.setPreferredSize(new Dimension(parentWidth > 0 ? parentWidth - 32 : 400, rowHeight));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowHeight));
+
         return row;
     }
 
@@ -542,10 +566,27 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
         row.setOpaque(false);
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         row.setBorder(new EmptyBorder(2, 10, 2, 10));
-        JLabel lbl = new JLabel(clean);
-        lbl.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.PLAIN, 12));
-        lbl.setForeground(new Color(0x5F5E5A));
-        row.add(lbl, BorderLayout.WEST);
+
+        JTextArea textArea = new JTextArea(clean);
+        textArea.setFont(new Font(AppTheme.FONT_BODY.getName(), Font.PLAIN, 12));
+        textArea.setForeground(new Color(0x5F5E5A));
+        textArea.setOpaque(false);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+
+        int parentWidth = outputBody != null ? outputBody.getWidth() : 0;
+        int availableWidth = Math.max(200, parentWidth - 80);
+        textArea.setSize(new Dimension(availableWidth, Short.MAX_VALUE));
+        int preferredHeight = textArea.getPreferredSize().height;
+        textArea.setPreferredSize(new Dimension(availableWidth, preferredHeight));
+
+        row.add(textArea, BorderLayout.CENTER);
+
+        int rowHeight = preferredHeight + 4;
+        row.setPreferredSize(new Dimension(parentWidth > 0 ? parentWidth - 32 : 400, rowHeight));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowHeight));
+
         return row;
     }
 
@@ -558,6 +599,14 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
         area.setBorder(new EmptyBorder(8, 8, 8, 8));
+
+        int parentWidth = outputBody != null ? outputBody.getWidth() : 0;
+        int availableWidth = Math.max(200, parentWidth - 32);
+        area.setSize(new Dimension(availableWidth, Short.MAX_VALUE));
+        int preferredHeight = area.getPreferredSize().height;
+        area.setPreferredSize(new Dimension(availableWidth, preferredHeight));
+        area.setMaximumSize(new Dimension(Integer.MAX_VALUE, preferredHeight));
+
         return area;
     }
 
@@ -673,11 +722,7 @@ public class StudyPlanPanel extends JPanel implements ParameterReceiver {
                 super.paintComponent(g);
             }
         };
-        // FIX: card paints its own white background manually, so it must NOT be
-        // opaque — otherwise Swing's default opaque-fill (parent LAF default,
-        // typically white) paints first and can bleed through the rounded
-        // corners / edges, and more importantly, leaving it opaque was masking
-        // the lavender page background anywhere this card didn't fully cover.
+        
         card.setOpaque(false);
         return card;
     }
