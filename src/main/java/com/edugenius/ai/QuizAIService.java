@@ -61,23 +61,84 @@ public class QuizAIService {
     }
     
     private String buildQuizPrompt(String topic, String difficulty, int questionCount) {
-        return "You are an expert CS quiz creator for AAU (Addis Ababa University) students.\n" +
-               "Generate " + questionCount + " " + difficulty + " difficulty multiple choice questions about: " + topic + "\n\n" +
-               "Each question must have:\n" +
-               "- A clear question text\n" +
-               "- 4 options labeled A, B, C, D\n" +
-               "- The correct answer letter\n" +
-               "- A brief explanation of why it's correct\n\n" +
-               "Respond ONLY with a valid JSON array. No other text. Format exactly like this:\n" +
-               "[\n" +
-               "  {\n" +
-               "    \"question\": \"What is the time complexity of binary search?\",\n" +
-               "    \"options\": {\"A\": \"O(1)\", \"B\": \"O(log n)\", \"C\": \"O(n)\", \"D\": \"O(n log n)\"},\n" +
-               "    \"correct\": \"B\",\n" +
-               "    \"explanation\": \"Binary search divides the search space in half each time, resulting in logarithmic time complexity.\"\n" +
-               "  }\n" +
-               "]\n\n" +
-               "Make questions relevant to Ethiopian CS curriculum. Include practical programming examples when appropriate.";
+        // Extract format type from topic if present
+        String formatType = "MultipleChoice"; // default
+        String cleanTopic = topic;
+        
+        if (topic.contains("Format Requirement Type:")) {
+            int startIdx = topic.indexOf("Format Requirement Type:") + "Format Requirement Type:".length();
+            int endIdx = topic.indexOf("]", startIdx);
+            if (endIdx > startIdx) {
+                String formatStr = topic.substring(startIdx, endIdx).trim();
+                cleanTopic = topic.substring(0, topic.indexOf("[Format Requirement Type:")).trim();
+                
+                if (formatStr.contains("True")) {
+                    formatType = "TrueFalse";
+                } else if (formatStr.contains("Short")) {
+                    formatType = "ShortAnswer";
+                }
+            }
+        }
+        
+        return buildPromptByType(cleanTopic, difficulty, questionCount, formatType);
+    }
+    
+    private String buildPromptByType(String topic, String difficulty, int questionCount, String formatType) {
+        if ("TrueFalse".equals(formatType)) {
+            return "You are an expert CS quiz creator for AAU (Addis Ababa University) students.\n" +
+                   "Generate " + questionCount + " " + difficulty + " difficulty TRUE/FALSE questions about: " + topic + "\n\n" +
+                   "Each question must have:\n" +
+                   "- A clear statement (question text)\n" +
+                   "- Two options: 'True' and 'False'\n" +
+                   "- The correct answer (True or False)\n" +
+                   "- A brief explanation of why it's correct\n\n" +
+                   "Respond ONLY with a valid JSON array. No other text. Format exactly like this:\n" +
+                   "[\n" +
+                   "  {\n" +
+                   "    \"question\": \"Binary search requires the array to be sorted.\",\n" +
+                   "    \"options\": {\"A\": \"True\", \"B\": \"False\"},\n" +
+                   "    \"correct\": \"A\",\n" +
+                   "    \"explanation\": \"Yes, binary search requires a sorted array to work correctly.\"\n" +
+                   "  }\n" +
+                   "]\n\n" +
+                   "Make questions relevant to Ethiopian CS curriculum.";
+        } else if ("ShortAnswer".equals(formatType)) {
+            return "You are an expert CS quiz creator for AAU (Addis Ababa University) students.\n" +
+                   "Generate " + questionCount + " " + difficulty + " difficulty SHORT ANSWER questions about: " + topic + "\n\n" +
+                   "Each question must have:\n" +
+                   "- A clear question text\n" +
+                   "- A concise correct answer (1-2 sentences)\n" +
+                   "- A brief explanation or example\n\n" +
+                   "Respond ONLY with a valid JSON array. No other text. Format exactly like this: and also dont forget to add the \"option\" with correct answer \n" +
+                   "[\n" +
+                   "  {\n" +
+                   "    \"question\": \"What is the time complexity of linear search?\",\n" +
+                   "    \"options\": {\"A\": \"O(n)\"},\n" +
+                   "    \"correct\": \"A\",\n" +
+                   "    \"explanation\": \"Linear search checks each element one by one, so it takes O(n) time in the worst case.\"\n" +
+                   "  }\n" +
+                   "]\n\n" +
+                   "Make questions relevant to Ethiopian CS curriculum.";
+        } else {
+            // Default to Multiple Choice
+            return "You are an expert CS quiz creator for AAU (Addis Ababa University) students.\n" +
+                   "Generate " + questionCount + " " + difficulty + " difficulty multiple choice questions about: " + topic + "\n\n" +
+                   "Each question must have:\n" +
+                   "- A clear question text\n" +
+                   "- 4 options labeled A, B, C, D\n" +
+                   "- The correct answer letter\n" +
+                   "- A brief explanation of why it's correct\n\n" +
+                   "Respond ONLY with a valid JSON array. No other text. Format exactly like this:\n" +
+                   "[\n" +
+                   "  {\n" +
+                   "    \"question\": \"What is the time complexity of binary search?\",\n" +
+                   "    \"options\": {\"A\": \"O(1)\", \"B\": \"O(log n)\", \"C\": \"O(n)\", \"D\": \"O(n log n)\"},\n" +
+                   "    \"correct\": \"B\",\n" +
+                   "    \"explanation\": \"Binary search divides the search space in half each time, resulting in logarithmic time complexity.\"\n" +
+                   "  }\n" +
+                   "]\n\n" +
+                   "Make questions relevant to Ethiopian CS curriculum. Include practical programming examples when appropriate.";
+        }
     }
     
     private String callGroqAPI(String prompt) throws Exception {

@@ -8,7 +8,11 @@ import com.edugenius.utils.ValidationUtils;
 import com.edugenius.views.NavigationManager;
 
 import javax.swing.*;
+import javax.swing.border.AbstractBorder;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
+import javax.swing.border.Border;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -184,12 +188,8 @@ public class WelcomePanel extends JPanel {
         
         aauIdField = new JTextField();
         aauIdField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        aauIdField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
-        aauIdField.setToolTipText("Format: UGR/1234/15, SGR/1234/15, or EMP/1234/15");
-        gbc.gridy = 3;
+        aauIdField.setBorder(createRoundedBorder(8, 10));
+        aauIdField.setToolTipText("Format: UGR/1234/15, SGR/1234/15, or EMP/1234/15");        addFocusHighlight(aauIdField);        gbc.gridy = 3;
         gbc.insets = new Insets(0, 0, 16, 0);
         card.add(aauIdField, gbc);
         
@@ -203,11 +203,7 @@ public class WelcomePanel extends JPanel {
         
         fullNameField = new JTextField();
         fullNameField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        fullNameField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
-        gbc.gridy = 5;
+        fullNameField.setBorder(createRoundedBorder(8, 10));        addFocusHighlight(fullNameField);        gbc.gridy = 5;
         gbc.insets = new Insets(0, 0, 16, 0);
         card.add(fullNameField, gbc);
         
@@ -221,11 +217,7 @@ public class WelcomePanel extends JPanel {
         
         passwordField = new JPasswordField();
         passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
-        gbc.gridy = 7;
+        passwordField.setBorder(createRoundedBorder(8, 10));        addFocusHighlight(passwordField);        gbc.gridy = 7;
         gbc.insets = new Insets(0, 0, 16, 0);
         card.add(passwordField, gbc);
         
@@ -239,12 +231,8 @@ public class WelcomePanel extends JPanel {
         
         roleCombo = new JComboBox<>(new String[]{"Student", "Teacher"});
         roleCombo.setFont(AppTheme.FONT_BODY);
-        roleCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
-        roleCombo.addActionListener(e -> toggleConditionalFields());
-        gbc.gridy = 9;
+        roleCombo.setBorder(createRoundedBorder(8, 10));
+        roleCombo.addActionListener(e -> toggleConditionalFields());        addFocusHighlight(roleCombo);        gbc.gridy = 9;
         gbc.insets = new Insets(0, 0, 16, 0);
         card.add(roleCombo, gbc);
         
@@ -273,13 +261,23 @@ public class WelcomePanel extends JPanel {
         card.add(errorLabel, gbc);
         
         // Signup Button
-        signupButton = new JButton("Create Account");
+        signupButton = new JButton("Create Account") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                super.paintComponent(g);
+            }
+        };
         signupButton.setFont(AppTheme.FONT_BODY_BOLD);
         signupButton.setBackground(AppTheme.TEAL);
         signupButton.setForeground(AppTheme.WHITE);
         signupButton.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
         signupButton.setFocusPainted(false);
         signupButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        signupButton.setContentAreaFilled(false);
         signupButton.addActionListener(e -> handleSignup());
         gbc.gridy = 12;
         gbc.insets = new Insets(0, 0, 16, 0);
@@ -323,15 +321,9 @@ public class WelcomePanel extends JPanel {
         yearCombo.setFont(AppTheme.FONT_BODY);
         semesterCombo = new JComboBox<>(new String[]{"Semester 1", "Semester 2"});
         semesterCombo.setFont(AppTheme.FONT_BODY);
-        yearCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(4, 8, 4, 8)
-        ));
-        semesterCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(4, 8, 4, 8)
-        ));
-        panel.add(yearCombo);
+        yearCombo.setBorder(createRoundedBorder(4, 8));
+        semesterCombo.setBorder(createRoundedBorder(4, 8));        addFocusHighlight(yearCombo);
+        addFocusHighlight(semesterCombo);        panel.add(yearCombo);
         panel.add(semesterCombo);
         
         return panel;
@@ -350,12 +342,9 @@ public class WelcomePanel extends JPanel {
         
         subjectField = new JTextField();
         subjectField.setFont(AppTheme.FONT_BODY);
-        subjectField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
+        subjectField.setBorder(createFocusableRoundedBorder(8, 10));
         subjectField.setToolTipText("e.g., Data Structures, Java Programming, Database Systems");
-        
+        addFocusHighlight(subjectField);        
         panel.add(subjectField, BorderLayout.CENTER);
         
         return panel;
@@ -448,5 +437,55 @@ public class WelcomePanel extends JPanel {
             }
         };
         worker.execute();
+    }
+    
+    private Border createRoundedBorder(int vPadding, int hPadding) {
+        return new AbstractBorder() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(AppTheme.BORDER);
+                g2.setStroke(new BasicStroke(1));
+                g2.drawRoundRect(x, y, width - 1, height - 1, 8, 8);
+            }
+            
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(vPadding, hPadding, vPadding, hPadding);
+            }
+        };
+    }
+    
+    private Border createFocusableRoundedBorder(int vPadding, int hPadding) {
+        return new AbstractBorder() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(c.hasFocus() ? AppTheme.TEAL : AppTheme.BORDER);
+                g2.setStroke(new BasicStroke(c.hasFocus() ? 2 : 1));
+                g2.drawRoundRect(x, y, width - 1, height - 1, 8, 8);
+            }
+            
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(vPadding, hPadding, vPadding, hPadding);
+            }
+        };
+    }
+    
+    private void addFocusHighlight(JComponent component) {
+        component.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                component.repaint();
+            }
+            
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                component.repaint();
+            }
+        });
     }
 }

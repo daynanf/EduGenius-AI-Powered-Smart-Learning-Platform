@@ -7,8 +7,11 @@ import com.edugenius.services.AuthService;
 import com.edugenius.views.NavigationManager;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.AbstractBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.geom.RoundRectangle2D;
 /**
  * Login Screen
  * Clean, centered card layout with AAU ID and password fields
@@ -41,12 +44,24 @@ public class LoginPanel extends JPanel {
     }
     
     private JPanel createLoginCard() {
-        JPanel card = new JPanel(new GridBagLayout());
-        card.setBackground(AppTheme.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER, 1, true),
-            BorderFactory.createEmptyBorder(40, 40, 40, 40)
-        ));
+        JPanel card = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw rounded rectangle background
+                g2.setColor(AppTheme.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                
+                // Draw rounded rectangle border
+                g2.setColor(AppTheme.BORDER);
+                g2.setStroke(new BasicStroke(1));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -90,11 +105,9 @@ public class LoginPanel extends JPanel {
         
         aauIdField = new JTextField();
         aauIdField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        aauIdField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
+        aauIdField.setBorder(createFocusableRoundedBorder(8, 10));
         aauIdField.setToolTipText("Example: UGR/1234/15");
+        addFocusHighlight(aauIdField);
         gbc.gridy = 4;
         gbc.insets = new Insets(0, 0, 20, 0);
         card.add(aauIdField, gbc);
@@ -109,10 +122,8 @@ public class LoginPanel extends JPanel {
         
         passwordField = new JPasswordField();
         passwordField.setFont(AppTheme.FONT_BODY);
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(AppTheme.BORDER),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
+        passwordField.setBorder(createFocusableRoundedBorder(8, 10));
+        addFocusHighlight(passwordField);
         gbc.gridy = 6;
         gbc.insets = new Insets(0, 0, 12, 0);
         card.add(passwordField, gbc);
@@ -149,13 +160,23 @@ public class LoginPanel extends JPanel {
         card.add(errorLabel, gbc);
         
         // Login Button
-        loginButton = new JButton("Sign In");
+        loginButton = new JButton("Sign In") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                super.paintComponent(g);
+            }
+        };
         loginButton.setFont(AppTheme.FONT_BODY_BOLD);
         loginButton.setBackground(AppTheme.TEAL);
         loginButton.setForeground(AppTheme.WHITE);
         loginButton.setBorder(BorderFactory.createEmptyBorder(14, 0, 14, 0));
         loginButton.setFocusPainted(false);
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginButton.setContentAreaFilled(false);
         loginButton.addActionListener(e -> handleLogin());
         gbc.gridy = 9;
         gbc.insets = new Insets(0, 0, 20, 0);
@@ -241,5 +262,54 @@ public class LoginPanel extends JPanel {
             }
         };
         worker.execute();
+    }    
+    private Border createRoundedBorder(int vPadding, int hPadding) {
+        return new AbstractBorder() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(AppTheme.BORDER);
+                g2.setStroke(new BasicStroke(1));
+                g2.drawRoundRect(x, y, width - 1, height - 1, 8, 8);
+            }
+            
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(vPadding, hPadding, vPadding, hPadding);
+            }
+        };
+    }
+    
+    private Border createFocusableRoundedBorder(int vPadding, int hPadding) {
+        return new AbstractBorder() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(c.hasFocus() ? AppTheme.TEAL : AppTheme.BORDER);
+                g2.setStroke(new BasicStroke(c.hasFocus() ? 2 : 1));
+                g2.drawRoundRect(x, y, width - 1, height - 1, 8, 8);
+            }
+            
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(vPadding, hPadding, vPadding, hPadding);
+            }
+        };
+    }
+    
+    private void addFocusHighlight(JComponent component) {
+        component.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                component.repaint();
+            }
+            
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                component.repaint();
+            }
+        });
     }
 }

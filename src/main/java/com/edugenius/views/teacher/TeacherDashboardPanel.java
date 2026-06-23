@@ -338,6 +338,20 @@ public class TeacherDashboardPanel extends JPanel {
                     QuizQuestion q = questions.get(i);
                     pw.println("Question " + (i + 1) + ": " + q.getQuestionText());
                     pw.println();
+                    
+                    // Extract and write options
+                    List<String> options = extractOptionsFromQuestion(q);
+                    if (!options.isEmpty()) {
+                        char letter = 'A';
+                        for (String option : options) {
+                            if (option != null && !option.trim().isEmpty()) {
+                                pw.println(letter + ") " + option);
+                                letter++;
+                            }
+                        }
+                        pw.println();
+                    }
+                    
                     pw.println("Correct Answer: " + (q.getCorrectOption() != null ? q.getCorrectOption() : "N/A"));
                     pw.println();
                     pw.println("---\n");
@@ -347,6 +361,59 @@ public class TeacherDashboardPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Could not save file: " + ex.getMessage());
             }
         }
+    }
+    
+    private List<String> extractOptionsFromQuestion(QuizQuestion question) {
+        List<String> options = new ArrayList<>();
+        
+        try {
+            // Scan via Methods
+            for (Method m : question.getClass().getMethods()) {
+                m.setAccessible(true);
+                String name = m.getName().toLowerCase();
+                
+                if (name.contains("option") || name.equals("getchoices") || name.contains("getanswers")) {
+                    Object res = m.invoke(question);
+                    if (res instanceof String[]) {
+                        Collections.addAll(options, (String[]) res);
+                    } else if (res instanceof List) {
+                        for (Object obj : (List<?>) res) {
+                            if (obj != null) options.add(obj.toString());
+                        }
+                    } else if (res instanceof String && name.matches(".*[a-d1-4]$")) {
+                        options.add((String) res);
+                    }
+                }
+            }
+            
+            // Fallback: Scan via Fields
+            if (options.isEmpty()) {
+                for (Field f : question.getClass().getDeclaredFields()) {
+                    f.setAccessible(true);
+                    String name = f.getName().toLowerCase();
+                    
+                    if (name.contains("option") || name.contains("choice")) {
+                        Object val = f.get(question);
+                        if (val instanceof String[]) {
+                            for (String s : (String[]) val) {
+                                if (s != null && !options.contains(s)) options.add(s);
+                            }
+                        } else if (val instanceof List) {
+                            for (Object obj : (List<?>) val) {
+                                if (obj != null && !options.contains(obj.toString())) options.add(obj.toString());
+                            }
+                        } else if (val instanceof String && (name.matches(".*[a-d1-4]$") || name.contains("one") || name.contains("two"))) {
+                            String optStr = (String) val;
+                            if (!options.contains(optStr)) options.add(optStr);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            // Failover protection
+        }
+        
+        return options;
     }
 
     private void saveLessonAsText(String lessonText) {
